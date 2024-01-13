@@ -1,0 +1,24 @@
+{
+  "name": "tts-blackjack",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tstl",
+    "deploy": "npm run build && npm run deploy",
+    "copy": "copy \"build\\bundle.lua\" \"%LOCALAPPDATA%\\Temp\\TabletopSimulator\\Tabletop Simulator Lua\\Global.-1.lua\""
+  },
+  "author": "KlutzyBubbles",
+  "license": "ISC",
+  "dependencies": {
+    "tts-types": "^0.0.2",
+    "typescript": "^5.3.3",
+    "typescript-to-lua": "^1.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "lua-types": "^2.13.1",
+    "tsx": "^4.7.0"
+  }
+}
