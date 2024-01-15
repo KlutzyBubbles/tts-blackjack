@@ -1,4 +1,10 @@
-export type Event = 'onBlindfold' | 'onChat' | 'onPlayerChangeColor'
+import Logger from "../logger"
+
+export type Event = 'onBlindfold'
+| 'onChat'
+| 'onPlayerChangeColor'
+| 'onObjectPickUp'
+| 'onObjectEnterContainer'
 
 export class EventManager {
 
@@ -24,13 +30,29 @@ export class EventManager {
         EventManager.register('onPlayerChangeColor', func)
     }
 
+    public static onObjectPickUp(func: typeof onObjectPickUp) {
+        EventManager.register('onObjectPickUp', func)
+    }
+
+    public static onObjectEnterContainer(func: typeof onObjectEnterContainer) {
+        EventManager.register('onObjectEnterContainer', func)
+    }
+
     public static run(event: Event, ...args: any): void {
         for (let func of EventManager.events[event] ?? []) {
-            print('calling')
+            Logger.trace('events.manager', `run('${event}', [${args?.length}])`)
             func(...args)
         }
     }
 
+}
+
+function onObjectPickUp(color: ColorLiteral, object: GObject) {
+    EventManager.run('onObjectPickUp', color, object)
+}
+
+function onObjectEnterContainer(contianer: Container, object: GObject) {
+    EventManager.run('onObjectEnterContainer', contianer, object)
 }
 
 function onBlindfold(player: Player, blindfolded: boolean) {

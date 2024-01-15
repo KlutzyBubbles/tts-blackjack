@@ -1,5 +1,7 @@
 export const ColorList: ColorLiteral[] = ['White', 'Brown', 'Black', 'Red', 'Orange', 'Green', 'Teal', 'Blue', 'Purple', 'Pink', 'Grey', 'Black', 'Nobody'] as const;
 
+export type PlayerSelection = ColorLiteral | 'Admin' | 'Host' | 'Promoted' | 'Everyone' | 'Colors' | 'Seated'
+
 export type VisibilityColors = {
     [key in ColorLiteral]?: boolean
 }

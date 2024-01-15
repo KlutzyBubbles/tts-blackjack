@@ -1,8 +1,16 @@
 import "./events"
+import Logger, { LogLevel } from "./logger";
 import "./ui"
+import "./items/pickup"
 
 function onLoad(saveData?: any) {
-    print('onLoad2');
+    Logger.level = LogLevel.Trace
+    Logger.style()
+    Logger.trace('index', 'TRACER')
+    Logger.debug('index', 'DEBUGGGY')
+    Logger.info('index', 'INFOOSS')
+    Logger.warn('index', 'WARNERS')
+    Logger.error('index', 'ERRORIST')
 }
 
 function clickSave() {

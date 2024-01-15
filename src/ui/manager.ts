@@ -36,6 +36,7 @@ export class UIPanelManager {
 }
 
 UIPanelManager.addPanel('buttonsLayout', 'buttonsGrid')
+UIPanelManager.addPanel('settingsLayout', 'settingsGrid')
 
 EventManager.onPlayerChangeColor((color) => UIPanelManager.playerChangedColor(color))
 
