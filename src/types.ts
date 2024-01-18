@@ -1,6 +1,9 @@
-export const ColorList: ColorLiteral[] = ['White', 'Brown', 'Black', 'Red', 'Orange', 'Green', 'Teal', 'Blue', 'Purple', 'Pink', 'Grey', 'Black', 'Nobody'] as const;
+const OnlyPlayable: ColorLiteral[] = ['White', 'Brown', 'Red', 'Orange', 'Green', 'Teal', 'Blue', 'Purple', 'Pink']
+export const ColorList: ColorLiteral[] = OnlyPlayable.concat(['Grey', 'Black', 'Nobody']);
+export const TableColorList: TableSelection[] = (OnlyPlayable as TableSelection[]).concat(['Dealer', 'Split1', 'Split2', 'Split3', 'Split4', 'Split5', 'Split6']);
 
 export type PlayerSelection = ColorLiteral | 'Admin' | 'Host' | 'Promoted' | 'Everyone' | 'Colors' | 'Seated'
+export type TableSelection = Exclude<ColorLiteral | 'Dealer' | 'Split1' | 'Split2' | 'Split3' | 'Split4' | 'Split5' | 'Split6', 'Nobody' | 'Black' | 'Grey'>
 
 export type VisibilityColors = {
     [key in ColorLiteral]?: boolean
