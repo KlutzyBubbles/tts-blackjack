@@ -1,4 +1,4 @@
-import { TableSelection } from "./types"
+import { HandType, RoundState, SpecialHands, TableSelection } from "./types"
 
 export enum Tag {
     Chip = 'Chip',
@@ -7,6 +7,119 @@ export enum Tag {
     Powerup = 'Powerup',
     BetBag = 'BetBag',
     Permissionable = 'Permable'
+}
+
+export const RoundStateGuids: { [key in RoundState]?: string } = {
+    '1': '1fe5da', // Bets
+    '2': 'bf6cbd', // Play
+    '3': 'fd2298', // Powerups
+    '4': 'aefae6' // Paused
+}
+
+export const PowerupGuids: string[] = [
+    "2c564b",
+    "432519",
+    "cd6cd1",
+    "a4883c",
+    "7b7031",
+    "4a8de2",
+    "fcaebe",
+    "48ae1d",
+    "3bf915",
+    "b5851f",
+    "81121a",
+    "60a985",
+    "c663e1",
+    "f0150d",
+    "84928d"
+]
+
+export const TimerGuids: { [key: string]: string } = {
+    bonus: '3cce5b',
+    round: '8f93ac'
+}
+
+export const BagGuids: { [key: string]: string } = {
+    bet: '697122',
+    deck: 'eaa77b',
+    minigame: '5b38f8',
+    bonus: '91fe78'
+}
+
+export const DisplayColors: { [key in HandType]: Color } = {
+    safe: Color(1, 1, 0.75),
+    win: Color(0.75, 1, 0.75),
+    lose: Color(1, 0.75, 0.75),
+    bust: Color(0.75, 0.5, 0.5),
+    clear: Color(1, 1, 1)
+}
+
+// The names (in quotes) should all match the names on your cards.
+// The values should match the value of those cards.
+// If you have powerup modifies (ex: +1 to score), it could be added here (again, figurine required)
+// 0 is reserved for Aces.
+export const CardNames: { [key: string]: number | string } = {
+    Two: 2,
+    Three: 3,
+    Four: 4,
+    Five: 5,
+    Six: 6,
+    Seven: 7,
+    Eight: 8,
+    Nine: 9,
+    Ten: 10,
+    Jack: 10,
+    Queen: 10,
+    King: 10,
+    Ace: 'Ace',
+    Joker: 'Joker',
+    "+1 to anyone's hand": 1,
+    "+1 to any player's hand": 1,
+    "-1 from anyone's hand": -1,
+    "+3 to anyone's hand": 3,
+    "+3 to any player's hand": 3,
+    "-3 from anyone's hand": -3,
+    "+10 to your own hand": 10,
+    "Discard your hand and stand on 19": 19,
+    "Force the dealer to bust": -69
+}
+
+export const SoftHandDisplay: { [key: number]: string } = {
+    1: "①",
+    2: "②",
+    3: "③",
+    4: "④",
+    5: "⑤",
+    6: "⑥",
+    7: "⑦",
+    8: "⑧",
+    9: "⑨",
+    10: "⑩",
+	11: "⑪",
+    12: "⑫",
+    13: "⑬",
+    14: "⑭",
+    15: "⑮",
+    16: "⑯",
+    17: "⑰",
+    18: "⑱",
+    19: "⑲",
+    20: "⑳",
+	21: "㉑",
+}
+
+export const SpecialHandDisplay: { [key in SpecialHands]?: string } = {
+	[SpecialHands.DealerBust]: "\u{2620}",
+    [SpecialHands.Bust]: "\u{2620}",
+	[SpecialHands.SingleJoker]: "\u{2661}",
+	[SpecialHands.Blackjack]: "\u{2664}",
+	[SpecialHands.Triple7]: "\u{277C}",
+	[SpecialHands.DoubleJoker]: "\u{2665}",
+}
+
+export const OtherZones: { [key: string]: string } = {
+    deck: '885bf4',
+    bonus: '3c31e1'
 }
 
 export const ColorZones: { [key in TableSelection]: {

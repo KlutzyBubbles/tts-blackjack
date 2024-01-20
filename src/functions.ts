@@ -1,4 +1,4 @@
-import { PlayerSelection } from "./types"
+import { PlayerSelection, SpecialHands } from "./types"
 
 export function colorToHex(color: Color, includeHash = false): string {
     return `${includeHash ? '#' : ''}${componentToHex(convertTo255(color.r))}${componentToHex(convertTo255(color.g))}${componentToHex(convertTo255(color.b))}`
@@ -40,4 +40,13 @@ export function checkPermissions(permissions: PlayerSelection[], player: Player)
         hasPermission = true
     }
     return hasPermission
+}
+
+export function isSpecialValue(value: number) {
+    return value === SpecialHands.Blackjack
+        || value === SpecialHands.Bust
+        || value === SpecialHands.DealerBust
+        || value === SpecialHands.DoubleJoker
+        || value === SpecialHands.SingleJoker
+        || value === SpecialHands.Triple7
 }

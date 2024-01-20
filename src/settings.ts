@@ -16,4 +16,17 @@ export default class Settings {
     */
     public static ignoreTags: string[] = [];
 
+    public static countForSafe: number = 5;
+    public static dealerBustCount: number = 5;
+
+    public static loadTime: number = 60;
+    public static bonusTime: number = 1200;
+
+    public static turnTimeLimit: number = 0;
+
+    public static splitOnValue: boolean = false;
+    public static dealerAceIsOne: boolean = true;
+
+    public static turnTimeLimitEnds: boolean = true;
+
 }
