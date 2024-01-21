@@ -29,7 +29,7 @@ export default class Timers {
     }
 
     public static timerStart(): void {
-        Wait.time(Timers.timerStart, 0.5)
+        Wait.time(() => Timers.timerStart, 0.5)
         if ((Timers.bonusTimer?.getValue() ?? 0) as number < 1) {
             Timers.resetBonusTimer(Settings.bonusTime)
             RoundBonus.bonusRound()

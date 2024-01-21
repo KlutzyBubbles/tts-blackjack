@@ -1,6 +1,7 @@
 import RoundBonus from "../bonus/round";
 import { CardNames, DisplayColors, SoftHandDisplay, SpecialHandDisplay } from "../constants";
 import { isSpecialValue } from "../functions";
+import CardHelpers from "../objects/cards";
 import Settings from "../settings";
 import State from "../state";
 import Timers from "../timer";
@@ -25,7 +26,7 @@ export default class ObjectSet {
     public userColor: TableSelection | undefined;
     public color: TableSelection;
 
-    public constructor(zone: GObject, container: GObject, prestige: GObject, actionButtons: GObject, table?: GObject, color: TableSelection) {
+    public constructor(zone: GObject, container: GObject, prestige: GObject, actionButtons: GObject, color: TableSelection, table?: GObject) {
         this.zone = zone;
         this.container = container;
         this.prestige = prestige;
@@ -292,7 +293,7 @@ export default class ObjectSet {
                         if (override === true) {
                             return
                         }
-                        if (!repeatBet(color, this, splitSet)) {
+                        if (!ZoneHelpers.repeatBet(color as TableSelection, this, splitSet)) {
                             return
                         }
                         override = RoundBonus.runBonusFunc('onPlayerSplit', {
@@ -316,11 +317,122 @@ export default class ObjectSet {
 
                         cards[1].setPosition(this.findCardPlacement(1))
 
-                        plac
+                        CardHelpers.placeCard(this.findCardPlacement(2), true, this, true, false)
+                        CardHelpers.placeCard(splitSet.findCardPlacement(2), true, splitSet, true, false)
+
+                        this.clearPlayerActions(false)
+                        State.currentPlayerTurn = splitSet.color
+
+                        Wait.time(() => {
+                            splitSet.delayedCreatePlayerActions()
+                        }, 1.5)
+                        return
                     }
                 }
+                broadcastToColor("Error: No free Split zones!", color, Color(1, 0.25, 0.25))
+            } else {
+                broadcastToColor("Error: Button delay is active.\nWait a moment then try again.", color, Color(1, 0.25, 0.25))
             }
         }
+    }
+
+    public playerHit(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+        if (this.canInitiateAction(color)) {
+            if (altClick || !this.checkCurrentTurn()) {
+                return
+            }
+            if (!State.lockout) {
+                let override = RoundBonus.runBonusFunc('onPlayerHit', {
+                    set: this,
+                    color: color
+                })
+                if (override === true) {
+                    return
+                }
+                Timers.endTurnTimer(this, false)
+                this.clearPlayerActions(true)
+                State.lockoutTimer(1)
+                if (this.value > 21) {
+                    this.clearPlayerActions(false)
+                    Zones.passPlayerActions(this.zone)
+                } else {
+                    let card = ''
+                    if (State.mainDeck !== undefined) {
+                        if (State.mainDeck.getObjects()[0] !== undefined) {
+                            card = State.mainDeck.getObjects()[0].name ?? ''
+                        }
+                    }
+                    this.checkForBust(card)
+                    this.forcedCardDraw()
+                }
+            } else {
+                broadcastToColor("Error: Button delay is active.\nWait a moment then try again.", color, Color(1, 0.25, 0.25))
+            }
+        }
+    }
+
+    public playerDouble(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+        if (this.canInitiateAction(color)) {
+            if (altClick || !this.checkCurrentTurn()) {
+                return
+            }
+            if (this.value > 21) {
+                this.clearPlayerActions(false)
+                Zones.passPlayerActions(this.zone)
+                return
+            }
+
+            let cards = ZoneHelpers.findCardsInZone(this.zone)
+            if (cards.length !== 2) {
+                this.clearPlayerActions(true)
+                return
+            }
+
+            if (!State.lockout) {
+                let override = RoundBonus.runBonusFunc('prePlayerDouble', {
+                    set: this,
+                    color: color
+                })
+                if (override === true) {
+                    return
+                }
+                Timers.endTurnTimer(this, false)
+                if (!ZoneHelpers.repeatBet(color as TableSelection, this, undefined)) {
+                    return
+                }
+                override = RoundBonus.runBonusFunc('onPlayerDouble', {
+                    set: this,
+                    color: color
+                })
+                if (override === true) {
+                    return
+                }
+                State.lockoutTimer(1.5)
+                this.forcedCardDraw()
+                this.clearPlayerActions(false)
+                Zones.passPlayerActions(this.zone)
+            } else {
+                broadcastToColor("Error: Button delay is active.\nWait a moment then try again.", color, Color(1, 0.25, 0.25))
+            }
+        }
+    }
+
+    public delayedCreatePlayerActions(): void {
+        let betsInZone = ZoneHelpers.findBetsInZone(this.zone).length
+        let cardsInZone = ZoneHelpers.findCardsInZone(this.zone).length
+        let decksInZone = ZoneHelpers.findDecksInZone(this.zone).length
+        if (betsInZone !== 0 && (cardsInZone !== 0 || decksInZone !== 0) && this.value <= 21) {
+            State.currentPlayerTurn = this.color
+            return this.createPlayerActions(false)
+        }
+        return Zones.passPlayerActions(this.zone)
+    }
+
+    public forcedCardDraw(): void {
+        let targetCardList = ZoneHelpers.findCardsInZone(this.zone)
+        let cardToDraw = targetCardList.length + 1
+        let pos = this.findCardPlacement(cardToDraw)
+        CardHelpers.placeCard(pos, true, this, false, false)
     }
 
     public findCardPlacement(spot: number): Vector {
@@ -367,10 +479,61 @@ export default class ObjectSet {
         }
     }
 
+    public checkForBust(addCard?: string): void {
+        if (this.value > 21) {
+            this.clearPlayerActions(false)
+            State.lockoutTimer(0.75)
+            Wait.time(() => {
+                if (this.color === State.currentPlayerTurn) {
+                    Zones.passPlayerActions(this.zone)
+                }
+            }, 0.5)
+        } else if (addCard !== undefined && CardNames[addCard] !== undefined) {
+            let val = CardNames[addCard]
+            if (val === 'Ace') {
+                val = 1
+            }
+            if (val === 'Joker' || (this.value + (tonumber(val as string) ?? 0) > (this.soft ? 31 : 21))) {
+                this.clearPlayerActions(false)
+                State.lockoutTimer(0.75)
+                Wait.time(() => {
+                    if (this.color === State.currentPlayerTurn) {
+                        Zones.passPlayerActions(this.zone)
+                    }
+                }, 0.5)
+            }
+        }
+    }
+
+    public hitCard(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+        if (altClick) {
+            return
+        }
+        if (color === 'Black' || Player[color].promoted || Player[color].host) {
+            let override = RoundBonus.runBonusFunc('onHit', {
+                zone: this.zone
+            })
+            if (override === true) {
+                return
+            }
+            let cardsInZone = ZoneHelpers.findCardsInZone(this.zone).length
+            let decksInZone = ZoneHelpers.findDecksInZone(this.zone).length
+            let pos = this.findCardPlacement(cardsInZone + decksInZone + 1)
+            CardHelpers.placeCard(pos, true, this, cardsInZone < 2 && decksInZone === 0, this.color === 'Dealer')
+        }
+    }
+
+    public playerPrestige(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+        // TODO Whole functoin
+    }
+
+    public playerBankrupt(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+        // TODO Whole functoin
+    }
+
     public createPlayerActions(simpleOnly: boolean): void {
         this.actionButtons.createButton({
             label: 'Stand',
-            // TODO
             click_function: this.playerStand,
             function_owner: undefined,
             position: Vector(-1, 0.25, 0),
@@ -381,8 +544,7 @@ export default class ObjectSet {
         })
         this.actionButtons.createButton({
             label: 'Hit',
-            // TODO
-            click_function: ,
+            click_function: this.playerHit,
             function_owner: undefined,
             position: Vector(1, 0.25, 0),
             rotation: Vector(0, 0, 0),
@@ -399,8 +561,7 @@ export default class ObjectSet {
             if (cards[0].getName() === cards[1].getName() || Settings.splitOnValue) {
                 this.actionButtons.createButton({
                     label: 'Split',
-                    // TODO
-                    click_function: ,
+                    click_function: this.playerSplit,
                     function_owner: undefined,
                     position: Vector(-1, 0.25, -0.65),
                     rotation: Vector(0, 0, 0),
@@ -414,8 +575,7 @@ export default class ObjectSet {
         if (cards.length === 2) {
             this.actionButtons.createButton({
                 label: 'Double',
-                // TODO
-                click_function: ,
+                click_function: this.playerDouble,
                 function_owner: undefined,
                 position: Vector(1, 0.25, -0.65),
                 rotation: Vector(0, 0, 0),
@@ -430,8 +590,7 @@ export default class ObjectSet {
         this.actionButtons.clearButtons()
         this.actionButtons.createButton({
             label: '0',
-            // TODO
-            click_function: ,
+            click_function: this.hitCard,
             function_owner: undefined,
             color: DisplayColors.clear,
             position: Vector(0, 0.25, 0),
@@ -444,8 +603,8 @@ export default class ObjectSet {
         if (extraOnly) {
             this.createPlayerActions(true)
         }
-
-
+        Zones.findCardsToCount()
+        this.updateHandCounter()
     }
 
     public createPlayerMetaActions(): void {
@@ -454,7 +613,7 @@ export default class ObjectSet {
             let scaleTable = this.table.getScale()
             this.table.createButton({
                 // TODO
-                click_function: ,
+                click_function: this.playerPrestige,
                 label: 'Prestige',
                 function_owner: undefined,
                 position: Vector(-0.13, -0.435, -0.48),
@@ -467,7 +626,7 @@ export default class ObjectSet {
             })
             this.table.createButton({
                 // TODO
-                click_function: ,
+                click_function: this.playerBankrupt,
                 label: 'Bankrupt',
                 function_owner: undefined,
                 position: Vector(0.13, -0.435, -0.48),

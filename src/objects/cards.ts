@@ -7,7 +7,7 @@ import Zones from "../zones/zones";
 export default class CardHelpers {
 
     public static btnFlipCard(card: GObject, color: ColorLiteral): void {
-        let canFlip = RoundBonus.runBonusFunc('onCardFlip'. {
+        let canFlip = RoundBonus.runBonusFunc('onCardFlip', {
             card: card,
             col: color
         })
@@ -33,7 +33,7 @@ export default class CardHelpers {
         }
     }
 
-    public static cardPlacedCallback(object?: GObject, data: any): void {
+    public static cardPlacedCallback(object: GObject, data: any): void {
         if (object === undefined) {
             return
         }
@@ -93,6 +93,47 @@ export default class CardHelpers {
         if (object.held_by_color !== undefined) {
             let newObject = object.reload()
             newObject.interactable = false
+        }
+    }
+
+    public static placeCard(position: Vector, flip: boolean, set: ObjectSet, isStarter: boolean, fastDraw: boolean): void {
+        if (State.mainDeck === undefined || State.mainDeck.getQuantity() < 40) {
+            // TODO newDeck()
+        }
+
+        let targetPos = position
+        if (position.y !== undefined) {
+            targetPos = Vector(position.x ?? 0, position.y ?? 0, position.z ?? 0)
+            position.y = (position.y ?? 0) + 0.1
+        } else if (position[1] !== undefined) {
+            targetPos = Vector(position[0] ?? 0, position[1] ?? 0, position[2] ?? 0)
+            position.y = (position[1] ?? 0) + 0.1
+        }
+
+        State.lastCard = State.mainDeck?.takeObject({
+            position: position,
+            flip: flip,
+            callback_function: (object) => {
+                CardHelpers.cardPlacedCallback(object, {
+                    targetPos: targetPos,
+                    flip: flip,
+                    set: set,
+                    isStarter: isStarter
+                })
+            },
+            smooth: !fastDraw
+        })
+        if (State.lastCard === undefined) {
+            return
+        }
+        State.lastCard.interactable = false
+
+        if (fastDraw) {
+            State.lastCard.setLock(true)
+            State.lastCard.setPosition(targetPos)
+            let rot = State.lastCard.getRotation()
+            rot.z = flip ? 0 : 180
+            State.lastCard.setRotation(rot)
         }
     }
 

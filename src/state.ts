@@ -6,6 +6,8 @@ export default class State {
 
     public static roundState: RoundState = RoundState.Betting
     public static roundStateObject: GObject | undefined;
+    public static mainDeck: GObject | undefined;
+    public static lastCard: GObject | undefined;
 
     public static dealersTurn: boolean = false
     public static dealingDealerCards: boolean = false
@@ -17,6 +19,7 @@ export default class State {
     public static nextAutoCardCount: number = 0
 
     public static turnActive: boolean = false
+
 
     public static setRoundStateObject(stateId: RoundState): void {
         for (let id of Object.keys(RoundStateGuids)) {
@@ -55,7 +58,7 @@ export default class State {
 
     public static lockoutTimer(time: number): void {
         State.lockout = true
-        Wait.time(State.concludeLockout, time)
+        Wait.time(() => State.concludeLockout, time)
     }
 
     public static concludeLockout(): void {

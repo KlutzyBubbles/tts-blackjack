@@ -4,6 +4,9 @@ import "./ui"
 import "./items/pickup"
 import CommandHandler from "./commands/handler";
 import SettingsCommand from "./commands/settings";
+import { bulkSetInteractable, getObjects } from "./functions";
+import { ObjectLockdown } from "./constants";
+import Zones from "./zones/zones";
 
 function onLoad(saveData?: any) {
     Logger.level = LogLevel.Trace
@@ -15,6 +18,8 @@ function onLoad(saveData?: any) {
     Logger.error('index', 'ERRORIST')
 
     CommandHandler.register('settings', new SettingsCommand())
+    bulkSetInteractable(getObjects(ObjectLockdown), false)
+    bulkSetInteractable(Zones.getActionButtons(), false)
 }
 
 function clickSave() {

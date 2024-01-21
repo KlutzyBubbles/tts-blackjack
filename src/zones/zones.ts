@@ -24,6 +24,14 @@ export default class Zones {
         return Zones.bonusZone ?? getObjectFromGUID(OtherZones.bonus)
     }
 
+    public static getActionButtons(): GObject[] {
+        let output: GObject[] = []
+        for (let zone of Object.values(Zones.zones)) {
+            output.push(zone.actionButtons)
+        }
+        return output
+    }
+
     public static initSingleZone(color: TableSelection, force = false): ObjectSet {
         if (Zones.zones[color] !== undefined && !force)
             return Zones.zones[color] as ObjectSet
@@ -33,8 +41,8 @@ export default class Zones {
             getObjectFromGUID(zoneIds.container),
             getObjectFromGUID(zoneIds.prestige),
             getObjectFromGUID(zoneIds.actionButtons),
-            getObjectFromGUID(zoneIds.table),
-            color
+            color,
+            getObjectFromGUID(zoneIds.table)
         )
         Zones.zones[color] = newZone
         return newZone
@@ -74,7 +82,7 @@ export default class Zones {
         for (let zone of Object.values(Zones.zones)) {
             zone.updateHandDisplay()
         }
-        // TODO timerStart()
+        Timers.timerStart()
     }
 
     public static passPlayerActions(zone: GObject): void {
@@ -114,9 +122,10 @@ export default class Zones {
                 if (betsInZone !== 0 && (cardsInZone !== 0 || decksInZone !== 0) && set.value <= 21) {
                     State.currentPlayerTurn = set.color
                     set.createPlayerActions(false)
-                    // TODO beginTurnTimer(set)
+                    Timers.beginTurnTimer(set, false)
                     break
                 }
+                nextInLine += 1
             }
         }
     }

@@ -50,3 +50,17 @@ export function isSpecialValue(value: number) {
         || value === SpecialHands.SingleJoker
         || value === SpecialHands.Triple7
 }
+
+export function getObjects(objectsGuids: string[]) {
+    let objects: GObject[] = []
+    for (let guid of objectsGuids) {
+        objects.push(getObjectFromGUID(guid))
+    }
+    return objects
+}
+
+export function bulkSetInteractable(objects: GObject[], interactable: boolean): void {
+    for (let object of objects) {
+        object.interactable = interactable
+    }
+}

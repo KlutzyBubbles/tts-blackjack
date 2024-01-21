@@ -122,6 +122,32 @@ export const OtherZones: { [key: string]: string } = {
     bonus: '3c31e1'
 }
 
+export const ObjectLockdown = [
+    '16f87e', '8e0429', // Dealer Area
+    '9871fe', '8eafbb', // Pink
+    'd5d7c5', '32da09', // Purple
+    'b92ec5', '51086b', '981767', // Blue
+    '51aacb', '60b260', '5a0955', // Teal
+    'b01343', '704082', '653add', // Green
+    '2cc362', '51690f', '63c8aa', // Yellow
+    'fddcfc', '8ea777', '54895c', // Orange
+    'f12fe3', '9f466e', 'a3c6db', // Red
+    'ac9b82', 'b2883b', // Brown
+    'a82b72', '4211a7', // White
+    '9ac0b7', // unknown
+    
+    // Rupee tophies
+    '1feed0', // Green
+    '533f81', // Blue
+    'b8bf89', // Yellow
+    '038e19', // Red
+    '02eb77', // Purple
+    '5e2f09', // Orange
+    'df5ce7', // Silver
+    'dc1fe2', // Rupoor
+    '0b6e51', // Gold
+]
+
 export const ColorZones: { [key in TableSelection]: {
     zone: string,
     container: string,

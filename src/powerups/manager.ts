@@ -44,24 +44,22 @@ export default class PowerupManager {
     // Type doesn't help with coding, but good for what the keys actually are
     private static effects: { [key in PowerupEffect | string]?: (objectSetTarget: ObjectSet, powerup: GObject, objectSetUser: ObjectSet) => boolean } = {
         Clear: PowerupEffects.clear,
-        /*
-        AltClear
-        Redraw
-        RedrawAll
-        Swap
-        Clone
-        Destroy
-        Reveal
-        Stand
-        Draw1
-        PowerupDraw
-        RupeePull
-        RewardToken
-        RoyalToken
-        PrestigeToken
-        ResetTimer
-        CardMod
-        */
+        AltClear: PowerupEffects.altClear,
+        Redraw: PowerupEffects.redraw,
+        RedrawAll: PowerupEffects.redrawAll,
+        Swap: PowerupEffects.swap,
+        Clone: PowerupEffects.clone,
+        Destroy: PowerupEffects.destroy,
+        Reveal: PowerupEffects.reveal,
+        Stand: PowerupEffects.stand,
+        Draw1: PowerupEffects.draw1,
+        PowerupDraw: PowerupEffects.powerupDraw,
+        RupeePull: PowerupEffects.rupeePull,
+        RewardToken: PowerupEffects.rewardToken,
+        RoyalToken: PowerupEffects.royalToken,
+        PrestigeToken: PowerupEffects.prestigeToken,
+        ResetTimer: PowerupEffects.resetTimer,
+        CardMod: PowerupEffects.cardMod
     }
 
     // Key is name, value is object guid
