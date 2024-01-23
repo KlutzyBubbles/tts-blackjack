@@ -8,19 +8,18 @@ import Zones from "./zones";
 
 export default class ZoneHelpers {
 
-    public static findObjectsThatMatch(zone: GObject, matcher: (object: GObject) => boolean) {
+    public static findObjectsThatMatch(zone: Zone, matcher: (object: GObject) => boolean) {
         let objectList = zone.getObjects()
         let foundObjects: GObject[] = []
         for (let object of objectList) {
-            let actualObject = getObjectFromGUID(object.guid)
-            if (matcher(actualObject)) {
-                foundObjects.push(actualObject)
+            if (matcher(object)) {
+                foundObjects.push(object)
             }
         }
         return foundObjects
     }
 
-    public static findObjectsWithTag(zone: GObject, tag: Tag, locked = false): GObject[] {
+    public static findObjectsWithTag(zone: Zone, tag: Tag, locked = false): GObject[] {
         return ZoneHelpers.findObjectsThatMatch(zone, (object: GObject) => {
             if (object.hasTag(tag)) {
                 if (locked) {
@@ -35,7 +34,7 @@ export default class ZoneHelpers {
         })
     }
 
-    public static findObjectsWithTags(zone: GObject, tags: Tag[], locked = false): GObject[] {
+    public static findObjectsWithTags(zone: Zone, tags: Tag[], locked = false): GObject[] {
         return ZoneHelpers.findObjectsThatMatch(zone, (object: GObject) => {
             let hasTag = false
             for (let tag of tags) {
@@ -57,23 +56,36 @@ export default class ZoneHelpers {
         })
     }
 
-    public static findBetsInZone(zone: GObject): GObject[] {
-        return ZoneHelpers.findObjectsWithTags(zone, [Tag.Chip, Tag.BetBag], false)
+    public static findBetsInZone(zone: Zone | undefined, interactableCheck = false): GObject[] {
+        if (zone === undefined) {
+            return []
+        }
+        let objects = ZoneHelpers.findObjectsWithTags(zone, [Tag.Chip, Tag.BetBag], false)
+        let output: GObject[] = []
+        if (interactableCheck) {
+            for (let object of objects) {
+                if (!object.interactable)
+                    output.push(object)
+            }
+        } else {
+            output = objects
+        }
+        return output
     }
 
-    public static findCardsInZone(zone: GObject): GObject[] {
+    public static findCardsInZone(zone: Zone): GObject[] {
         return ZoneHelpers.findObjectsWithTag(zone, Tag.Card, true)
     }
 
-    public static findDecksInZone(zone: GObject): GObject[] {
+    public static findDecksInZone(zone: Zone): GObject[] {
         return ZoneHelpers.findObjectsWithTag(zone, Tag.Deck, true)
     }
 
-    public static findPowerupsInZone(zone: GObject): GObject[] {
+    public static findPowerupsInZone(zone: Zone): GObject[] {
         return ZoneHelpers.findObjectsWithTag(zone, Tag.Powerup, true)
     }
 
-    public static setBetsLockState(zone: GObject, locked: boolean = false): void {
+    public static setBetsLockState(zone: Zone, locked: boolean = false): void {
         let objectList = ZoneHelpers.findBetsInZone(zone)
         for (let object of objectList) {
             object.interactable = !locked
@@ -81,7 +93,7 @@ export default class ZoneHelpers {
         }
     }
 
-    public static clearCardsAndPowerups(zone: GObject): void {
+    public static clearCardsAndPowerups(zone: Zone): void {
         let override = RoundBonus.runBonusFunc('clearCards', { zone: zone })
         if (override === true)
             return
@@ -92,7 +104,7 @@ export default class ZoneHelpers {
         Zones.getObjectSetFromZone(zone)?.displayResult(0, false)
     }
 
-    public static clearCardsOnly(zone: GObject): void {
+    public static clearCardsOnly(zone: Zone): void {
         let override = RoundBonus.runBonusFunc('clearCardsOnly', { zone: zone })
         if (override === true)
             return
@@ -113,8 +125,7 @@ export default class ZoneHelpers {
         let refundParams: TakeObjectParameters = {}
         refundParams.position = set.container.getPosition()
         refundParams.position.y = (refundParams.position.y ?? 0) + 0.25
-        for (let betData of zoneObjects) {
-            let bet = getObjectFromGUID(betData.guid)
+        for (let bet of zoneObjects) {
             if (!bet.interactable) {
                 if (bet.hasTag(Tag.Chip) && !bet.hasTag(Tag.Powerup)) {
                     let count = bet.getQuantity()
@@ -179,8 +190,7 @@ export default class ZoneHelpers {
             chip: GObject,
             currentBet?: number
         }[] = []
-        for (let chipData of tableObjects) {
-            let chip = getObjectFromGUID(chipData.guid)
+        for (let chip of tableObjects) {
             if (chip.hasTag(Tag.Chip)) {
                 let name = chip.getName()
                 if (currentBet[name] !== undefined && (currentBet[name] ?? 0) > 0) {

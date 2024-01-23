@@ -77,7 +77,7 @@ export default class PowerupManager {
         }
     }
 
-    public static spawnRandomPowerup(zone: GObject): boolean {
+    public static spawnRandomPowerup(zone: Zone): boolean {
         let powerupNames = Object.keys(PowerupManager.powerups)
         if (powerupNames.length === 0)
             return false

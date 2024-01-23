@@ -1,21 +1,25 @@
 import RoundBonus from "../bonus/round";
-import { CardNames, DisplayColors, SoftHandDisplay, SpecialHandDisplay } from "../constants";
-import { isSpecialValue } from "../functions";
+import { CardNames, DisplayColors, SelfDestructScript, SoftHandDisplay, SpecialHandDisplay, Tag } from "../constants";
+import { hasPermission, isSpecialValue } from "../functions";
+import { generatePermissionString } from "../items/pickup";
+import Logger from "../logger";
 import CardHelpers from "../objects/cards";
+import DeckManager from "../objects/decks";
+import Rewards from "../objects/rewards";
 import Settings from "../settings";
 import State from "../state";
 import Timers from "../timer";
-import { SpecialHands, TableSelection } from "../types";
+import { RewardName, SpecialHands, TableSelection } from "../types";
 import ZoneHelpers from "./helpers";
 import Zones from "./zones";
 
 export default class ObjectSet {
 
-    public zone: GObject;
+    public zone: Zone;
     public container: GObject;
-    public prestige: GObject;
+    public prestige: Zone;
     public actionButtons: GObject;
-    public table?: GObject;
+    public table?: Zone;
 
     public value = 0;
     public soft = false;
@@ -26,7 +30,7 @@ export default class ObjectSet {
     public userColor: TableSelection | undefined;
     public color: TableSelection;
 
-    public constructor(zone: GObject, container: GObject, prestige: GObject, actionButtons: GObject, color: TableSelection, table?: GObject) {
+    public constructor(zone: Zone, container: GObject, prestige: Zone, actionButtons: GObject, color: TableSelection, table?: Zone) {
         this.zone = zone;
         this.container = container;
         this.prestige = prestige;
@@ -115,7 +119,7 @@ export default class ObjectSet {
             let z = card.getRotation().z ?? 0
             if (z > 270 || z < 90) {
                 if (this.color === 'Dealer' && card.getName() === 'Joker') {
-                    // TODO resetTimer(3)
+                    Timers.resetBonusTimer(3)
                     card.destruct()
                 }
                 validCards.push(card.getName())
@@ -220,7 +224,7 @@ export default class ObjectSet {
 
         if (this.color === 'Dealer') {
             if (cardList.length === 1 && facedownCount === 1)  {
-                // TODO checkForBlackjack(value, facedownCard)
+                CardHelpers.checkForBlackjack(value, facedownCard)
             }
         }
     }
@@ -357,9 +361,9 @@ export default class ObjectSet {
                     Zones.passPlayerActions(this.zone)
                 } else {
                     let card = ''
-                    if (State.mainDeck !== undefined) {
-                        if (State.mainDeck.getObjects()[0] !== undefined) {
-                            card = State.mainDeck.getObjects()[0].name ?? ''
+                    if (DeckManager.mainDeck !== undefined) {
+                        if (DeckManager.mainDeck.getObjects()[0] !== undefined) {
+                            card = DeckManager.mainDeck.getObjects()[0].name ?? ''
                         }
                     }
                     this.checkForBust(card)
@@ -509,7 +513,7 @@ export default class ObjectSet {
         if (altClick) {
             return
         }
-        if (color === 'Black' || Player[color].promoted || Player[color].host) {
+        if (hasPermission(color)) {
             let override = RoundBonus.runBonusFunc('onHit', {
                 zone: this.zone
             })
@@ -523,12 +527,318 @@ export default class ObjectSet {
         }
     }
 
+    public giveReward(rewardName: RewardName): void {
+        let reward = Rewards.rewards[rewardName]
+        if (reward === undefined) {
+            return
+        }
+        let set: ObjectSet = this
+        if (this.userColor !== undefined) {
+            set = Zones.getObjectSetFromColor(set.userColor as TableSelection) ?? this
+        }
+        if (!Player[set.color as ColorLiteral].seated) {
+            return
+        }
+
+        let params: TakeObjectParameters = {}
+        params.position = set.zone.positionToWorld(Vector(0.5, 0, -0.5))
+        params.callback = 'giveRewardCallback'
+        params.params = {}
+        
+        for (let itemData of reward.getObjects()) {
+            params.position.y = (params.position.y ?? 0) + 0.1
+            params.params.pos = params.position
+
+            let item = getObjectFromGUID(itemData.guid)
+            let object: GObject | undefined;
+            let player = Player[this.color as ColorLiteral]
+            if (item.hasTag(Tag.Infinite)) {
+                object = item.takeObject(params)
+            } else if (object?.hasTag(Tag.SaveBag)) {
+                object = item.clone(params)
+                object.reset()
+
+                object.setName(`Player save: ${player.steam_name}`)
+                object.setDescription(player.steam_id)
+            } else {
+                object = item.clone(params)
+
+                object.setDescription(`${generatePermissionString(player)}\n\n${object.getDescription()}`)
+            }
+
+            if (object !== undefined) {
+                object.interactable = true
+                object.setLock(false)
+            }
+        }
+    }
+
+    public calculatePayout(): number {
+        let multiplier = 1
+        if (this.value === SpecialHands.DoubleJoker && this.count === 2) {
+            this.giveReward('DoubleJoker')
+            multiplier = Settings.betMultipliers.DoubleJoker
+        } else if (this.value === SpecialHands.Triple7 && this.count === 3) {
+            this.giveReward('TripleSeven')
+            multiplier = Settings.betMultipliers.TripleSeven
+        } else if ((this.value <= 21 || this.value === SpecialHands.SingleJoker) && this.count >= 5) {
+            if ((this.value === 21 || this.value === SpecialHands.SingleJoker) && this.count >= 6) {
+                this.giveReward('SixCardTwentyOne')
+                multiplier = Settings.betMultipliers.SixCardTwentyOne
+            } else if (this.count >= 6) {
+                this.giveReward('SixCardWin')
+                multiplier = Settings.betMultipliers.SixCardWin
+            } else if ((this.value === 21 || this.value === SpecialHands.SingleJoker) && this.count == 5) {
+                this.giveReward('FiveCardTwentyOne')
+                multiplier = Settings.betMultipliers.FiveCardTwentyOne
+            } else if (this.count === 5) {
+                this.giveReward('FiveCardWin')
+                multiplier = Settings.betMultipliers.FiveCardWin
+            }
+        } else if (this.value === SpecialHands.Blackjack) {
+            this.giveReward('Blackjack')
+            multiplier = Settings.betMultipliers.Blackjack
+        } else if (this.value === SpecialHands.SingleJoker) {
+            this.giveReward('SingleJoker')
+            multiplier = 1 + Settings.betMultipliers.SingleJoker
+            // TODO getPrestige
+            // multiplier = this.getPrestige() + Settings.betMultipliers.SingleJoker
+        } else if (this.value === 21) {
+            multiplier = Settings.betMultipliers.TwentyOne
+        }
+        multiplier = (RoundBonus.getPayoutMultiplier(this, multiplier) ?? multiplier) * math.max(Settings.multiplier, 1)
+        return multiplier
+    }
+
+    public processPayout(iterations: number, lockedOnly: boolean): void {
+        let zoneObjects = ZoneHelpers.findBetsInZone(this.zone)
+        let badBagObjects = 0
+
+        let playerId = Player[(this.userColor ?? this.color) as ColorLiteral].seated ? Player[(this.userColor ?? this.color) as ColorLiteral].steam_id : undefined
+        
+        for (let bet of zoneObjects) {
+            let wasLocked: { [key: string]: boolean } = {}
+            if (!lockedOnly || !bet.interactable || wasLocked[bet.getGUID()] !== undefined) {
+                if (lockedOnly && bet.hasTag(Tag.BetBag)) {
+                    let goodIds = bet.getTable('blackjack_betBagContents')
+                    let contents = bet.getObjects()
+
+                    let params: TakeObjectParameters = {}
+                    params.position = this.container.getPosition()
+                    params.position.y = (params.position.y ?? 0) + 0.25
+
+                    for (let object of contents) {
+                        if (goodIds[object.guid] === undefined || goodIds[object.guid] <= 0) {
+                            let taken = bet.takeObject(params)
+
+                            params.position.y = math.min((params.position.y ?? 0) + 0.5, 20)
+                            this.container.putObject(taken)
+
+                            badBagObjects += 1
+                        }
+                        goodIds[object.guid] = (goodIds[object.guid] ?? 0) - 1
+                    }
+                }
+                wasLocked[bet.getGUID()] = true
+                bet.interactable = true
+                bet.setLock(false)
+
+                let params: CloneParameters = {}
+                params.position = bet.getPosition()
+                params.position.y = (params.position.y ?? 0) - 10
+
+                let clone = bet.clone(params)
+                clone.setLock(true)
+                clone.setPosition(params.position)
+
+                clone.setLuaScript(SelfDestructScript.replace('%i', `${((iterations / 10) + 2) * 1.25}`))
+
+                if (!bet.getDescription().startsWith(playerId ?? 'noplayerid!$&VDW$#$')) {
+                    let foundPlayer = false
+                    for (let player of getSeatedPlayers()) {
+                        let targetSet = Zones.getObjectSetFromColor(player.color as TableSelection)
+                        if (player.seated && bet.getDescription().startsWith(player.steam_id) && targetSet !== undefined) {
+                            foundPlayer = true
+                            for (let i = 1; i <= iterations; i++) {
+                                Wait.time(() => {
+                                    targetSet.payBet(clone, i === iterations)
+                                }, 1 / 10)
+                            }
+                            let setPos = targetSet.zone.getPosition()
+                            bet.setPosition(setPos)
+                            break
+                        }
+                    }
+                    if (!foundPlayer) {
+                        // Says in script a todo to push objects to autosave
+                        destroyObject(bet)
+                        destroyObject(clone)
+                    }
+                } else {
+                    for (let i = 1; i <= iterations; i++) {
+                        Wait.time(() => {
+                            this.payBet(clone, i === iterations)
+                        }, 1 / 10)
+                    }
+                    if (this.userColor !== undefined) {
+                        let targetSet = Zones.getObjectSetFromColor(this.userColor)
+                        if (targetSet !== undefined) {
+                            targetSet.container.putObject(bet)
+                        }
+                    }
+                }
+            }
+        }
+
+        if (badBagObjects > 0) {
+            broadcastToColor(`Refunded ${badBagObjects} bad object(s) in bet bag. Did you attempt to alter your bet?`, this.color, Color(1, 0.25, 0.25))
+            for (let adminColor of getSeatedPlayers()) {
+                if (adminColor.admin) {
+                    printToColor(`Refunded ${badBagObjects} bad object(s) in bet bag of player ${this.color} (${Player[this.color as ColorLiteral].steam_name}).`, adminColor.color, Color(1, 0, 0))
+                }
+            }
+        }
+    }
+
+    public payBet(bet: GObject, final: boolean) {
+        let params: CloneParameters = {}
+        params.position = this.container.getPosition()
+        params.position.y = (params.position.y ?? 0) + 0.25
+        
+        params.params = { container: this.container }
+        params.callback = "validatePayoutObjectCallback"
+	    params.callback_owner = Global
+        
+        if (bet.hasTag(Tag.Chip)) {
+            let payout = bet.clone(params)
+            payout.setPosition(params.position)
+
+            payout.interactable = true
+            payout.setLock(false)
+            payout.setLuaScript('')
+
+            this.container.putObject(payout)
+
+            payout.destruct()
+        } else if (bet.hasTag(Tag.BetBag)) {
+            let payout = bet.takeObject(params)
+
+            for (let i = 0; payout.getQuantity(); i++) {
+                let taken = payout.takeObject(params)
+                taken.setPosition(params.position)
+
+                taken.setLock(true)
+                params.position.y = math.min((params.position.y ?? 0) + 0.5, 20)
+            }
+            payout.destruct()
+        }
+        if (final) {
+            bet.destruct()
+        }
+    }
+
+    public clearBets(lockedOnly: boolean): void {
+        let override = RoundBonus.runBonusFunc('clearBets', {
+            zone: this.zone,
+            lockedOnly: lockedOnly
+        })
+        if (override === true) {
+            return
+        }
+        let objectsInZone = ZoneHelpers.findBetsInZone(this.zone)
+        let badBagObjects = 0
+        for (let object of objectsInZone) {
+            if (!(lockedOnly && object.interactable)) {
+                if (object.hasTag(Tag.BetBag)) {
+                    let goodIds: { [key: string]: number } = object.getTable('blackjack_betBagContents')
+                    let contents = object.getObjects()
+
+                    let params: TakeObjectParameters = {}
+                    params.position = this.container.getPosition()
+                    params.position.y = (params.position.y ?? 0) + 0.25
+
+                    for (let subObject of contents) {
+                        if (lockedOnly && goodIds[subObject.guid] === undefined || goodIds[subObject.guid] <= 0) {
+                            let taken = object.takeObject(params)
+                            this.container.putObject(taken)
+                            badBagObjects += 1
+                        } else {
+                            let taken = object.takeObject(params)
+                            destroyObject(taken)
+                            goodIds[subObject.guid] = (goodIds[subObject.guid] ?? 0) + 1
+                        }
+                        params.position.y = math.min((params.position.y ?? 0) + 0.5, 20)
+                    }
+                } else {
+                    destroyObject(object)
+                }
+            }
+        }
+
+        if (badBagObjects > 0) {
+            broadcastToColor(`Refunded ${badBagObjects} bad objects in bet bag(s). Did you attempt to alter your bet?`, this.color, Color(1, 0.25, 0.25))
+            for (let adminColor of getSeatedPlayers()) {
+                if (adminColor.admin) {
+                    printToColor(`Refunded ${badBagObjects} bad object(s) in bet bag of player ${this.color} (${Player[this.color as ColorLiteral].steam_name}).`, adminColor.color, Color(1, 0, 0))
+                }
+            }
+        }
+    }
+
+    public revealHandZone(): void {
+        let targetCardList = ZoneHelpers.findCardsInZone(this.zone)
+        if (targetCardList.length !== 0) {
+            for (let card of targetCardList) {
+                let z = card.getRotation().z ?? 0
+                if (z > 15 && z < 345) {
+                    card.setRotation(Vector(0, 0, 0))
+                    let pos = card.getPosition()
+                    pos.y = (pos.y ?? 0) + 0.2
+                    card.setPosition(pos)
+                }
+            }
+            if (this.zone === Zones.getObjectSetFromColor('Dealer').zone) {
+                startLuaCoroutine(Global, 'DoDealersCards')
+            }
+
+            this.updateHandCounter()
+        } else {
+            printToAll("ERROR: No cards to reveal. Powerup devoured anyway (yummy).", Color(1, 0.1, 0.1))
+        }
+    }
+
+    public deal(whichCard: number[]): void {
+        let override: any;
+        if (this.color === 'Dealer') {
+            override = RoundBonus.runBonusFunc('dealDealer', { whichCard: whichCard })
+        } else {
+            override = RoundBonus.runBonusFunc('dealPlayer', { color: this.color, whichCard: whichCard })
+        }
+        if (override === true) {
+            return
+        }
+        for (let spot of whichCard) {
+            let pos = this.findCardPlacement(spot)
+            if (this.color === 'Dealer') {
+                if (spot !== 2 || RoundBonus.shouldDealerReveal()) {
+                    CardHelpers.placeCard(pos, true, this, spot <= 2, true)
+                } else {
+                    CardHelpers.placeCard(pos, false, this, spot <= 2, true)
+                }
+            } else {
+                CardHelpers.placeCard(pos, true, this, true, true)
+            }
+        }
+    }
+
     public playerPrestige(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
-        // TODO Whole functoin
+        // TODO Whole prestige functoin
+        Logger.error('zones.objectSet', 'Not implemented')
     }
 
     public playerBankrupt(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
-        // TODO Whole functoin
+        // TODO Whole bankrupt functoin
+        Logger.error('zones.objectSet', 'Not implemented')
     }
 
     public createPlayerActions(simpleOnly: boolean): void {
@@ -612,7 +922,6 @@ export default class ObjectSet {
             this.table.clearButtons()
             let scaleTable = this.table.getScale()
             this.table.createButton({
-                // TODO
                 click_function: this.playerPrestige,
                 label: 'Prestige',
                 function_owner: undefined,
@@ -625,7 +934,6 @@ export default class ObjectSet {
                 color: Color(0.5, 0.5, 0.5)
             })
             this.table.createButton({
-                // TODO
                 click_function: this.playerBankrupt,
                 label: 'Bankrupt',
                 function_owner: undefined,

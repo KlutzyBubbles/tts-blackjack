@@ -1,8 +1,10 @@
 import RoundBonus from "../bonus/round";
+import { CardNames } from "../constants";
 import State from "../state";
 import ZoneHelpers from "../zones/helpers";
 import ObjectSet from "../zones/objectSet";
 import Zones from "../zones/zones";
+import DeckManager from "./decks";
 
 export default class CardHelpers {
 
@@ -97,8 +99,8 @@ export default class CardHelpers {
     }
 
     public static placeCard(position: Vector, flip: boolean, set: ObjectSet, isStarter: boolean, fastDraw: boolean): void {
-        if (State.mainDeck === undefined || State.mainDeck.getQuantity() < 40) {
-            // TODO newDeck()
+        if (DeckManager.mainDeck === undefined || DeckManager.mainDeck.getQuantity() < 40) {
+            DeckManager.newDeck()
         }
 
         let targetPos = position
@@ -110,7 +112,7 @@ export default class CardHelpers {
             position.y = (position[1] ?? 0) + 0.1
         }
 
-        State.lastCard = State.mainDeck?.takeObject({
+        State.lastCard = DeckManager.mainDeck?.takeObject({
             position: position,
             flip: flip,
             callback_function: (object) => {
@@ -134,6 +136,30 @@ export default class CardHelpers {
             let rot = State.lastCard.getRotation()
             rot.z = flip ? 0 : 180
             State.lastCard.setRotation(rot)
+        }
+    }
+
+    public static checkForBlackjack(value: number, facedownCard: GObject | undefined): void {
+        if (facedownCard === undefined) {
+            return
+        }
+        let facedownValue: string | number | undefined;
+        for (let name of Object.keys(CardNames)) {
+            if (name === facedownCard.getName()) {
+                facedownValue = CardNames[name]
+                break
+            }
+        }
+        if ((facedownValue === 'Ace' && value === 10) || (facedownValue === 10 && value === 11)) {
+            facedownCard.setRotation(Vector(0, 0, 0))
+            let pos = facedownCard.getPosition()
+            pos.y = (pos.y ?? 0) + 0.2
+            facedownCard.setPosition(pos)
+            broadcastToAll("Dealer has Blackjack!", Color(0.9, 0.2, 0.2))
+            Wait.frames(() => {
+                Zones.getObjectSetFromColor('Dealer').updateHandCounter()
+                Zones.updateAllDisplays()
+            }, 2)
         }
     }
 

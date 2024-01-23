@@ -1,4 +1,4 @@
-import { HandType, RoundState, SpecialHands, TableSelection } from "./types"
+import { HandType, RewardName, RoundState, SpecialHands, TableSelection } from "./types"
 
 export enum Tag {
     Chip = 'Chip',
@@ -6,6 +6,8 @@ export enum Tag {
     Card = 'Card',
     Powerup = 'Powerup',
     BetBag = 'BetBag',
+    SaveBag = 'SaveBag',
+    Infinite = 'Infinite',
     Permissionable = 'Permable'
 }
 
@@ -147,6 +149,30 @@ export const ObjectLockdown = [
     'dc1fe2', // Rupoor
     '0b6e51', // Gold
 ]
+
+export const SelfDestructScript = `
+    function onLoad()
+        expireTime = os.time() + %i
+    end
+    function onUpdate()
+        if expireTime and os.time()>expireTime then destroyObject(self) end
+    end`
+
+export const RewardGuids: { [key in RewardName]: string } = {
+    Help: 'ef72b4',
+    GiveJokers: '4dbf75',
+    StealJokers: '395ece',
+    CopyJokers: 'aad1be',
+    FiveCardWin: '890842',
+    FiveCardTwentyOne: '37085e',
+    SixCardWin: '68a101',
+    SixCardTwentyOne: 'fe17c6',
+    Blackjack: '7c99c4',
+    DoubleJoker: '887ef8',
+    SingleJoker: '9b7f31',
+    TripleSeven: 'fa1dc7',
+    Unused: '9b7f31'
+}
 
 export const ColorZones: { [key in TableSelection]: {
     zone: string,

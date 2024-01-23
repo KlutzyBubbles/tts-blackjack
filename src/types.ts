@@ -63,6 +63,32 @@ export const PowerupEffectsList: PowerupEffect[] = [
 ]
 */
 
+export type RewardName = 'Help'
+| 'GiveJokers'
+| 'StealJokers'
+| 'CopyJokers'
+| 'FiveCardWin'
+| 'FiveCardTwentyOne'
+| 'SixCardWin'
+| 'SixCardTwentyOne'
+| 'Blackjack'
+| 'DoubleJoker'
+| 'SingleJoker'
+| 'TripleSeven'
+| 'Unused'
+
+export type RewardMultipliers = 'FiveCardWin'
+| 'FiveCardTwentyOne'
+| 'SixCardWin'
+| 'SixCardTwentyOne'
+| 'Blackjack'
+| 'DoubleJoker'
+| 'SingleJoker'
+| 'TripleSeven'
+| 'TwentyOne'
+
+export type ScriptCallableColor = ColorLiteral | 'Lua'
+
 export type HandType = 'safe' | 'win' | 'lose' | 'bust' | 'clear'
 
 export enum SpecialHands {

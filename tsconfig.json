@@ -13,7 +13,7 @@
       "declarationMap": false,
   
       "strict": true,
-      "types": ["tts-types", "./src/index"],
+      "types": ["tts-types", "@typescript-to-lua/language-extensions", "./src/index"],
     },
     "tstl": {
       "luaTarget": "5.2",

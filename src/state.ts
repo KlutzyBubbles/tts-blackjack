@@ -6,7 +6,7 @@ export default class State {
 
     public static roundState: RoundState = RoundState.Betting
     public static roundStateObject: GObject | undefined;
-    public static mainDeck: GObject | undefined;
+
     public static lastCard: GObject | undefined;
 
     public static dealersTurn: boolean = false
@@ -20,10 +20,12 @@ export default class State {
 
     public static turnActive: boolean = false
 
+    public static dealOrder: Player[] = []
+
 
     public static setRoundStateObject(stateId: RoundState): void {
         for (let id of Object.keys(RoundStateGuids)) {
-            State.roundStateObject = getObjectFromGUID(id)
+            State.roundStateObject = getObjectFromGUID(id) as GObject
             if (State.roundStateObject !== undefined)
                 break
         }
@@ -40,19 +42,19 @@ export default class State {
             return State.roundStateObject.getStateId()
         }
         for (let id of Object.keys(RoundStateGuids)) {
-            State.roundStateObject = getObjectFromGUID(id)
+            State.roundStateObject = getObjectFromGUID(id) as GObject
             if (State.roundStateObject !== undefined)
                 return State.roundStateObject.getStateId()
         }
         return RoundState.Unknown
     }
 
-    public static setRoundState(stateId: RoundState, roundTime: number): void {
+    public static setRoundState(stateId: RoundState, roundTime?: number): void {
         if (Timers.roundTimer === undefined)
             return
         State.roundState = stateId
         State.setRoundStateObject(stateId)
-        Timers.roundTimer.setValue(roundTime)
+        Timers.roundTimer.setValue(roundTime ?? 0)
         Timers.roundTimer.Clock.paused = Timers.roundTimer.getValue() === 0
     }
 

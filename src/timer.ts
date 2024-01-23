@@ -3,6 +3,7 @@ import { TimerGuids } from "./constants";
 import Settings from "./settings";
 import State from "./state";
 import { RoundState } from "./types";
+import ZoneButtons from "./zones/buttons";
 import ObjectSet from "./zones/objectSet";
 import Zones from "./zones/zones";
 
@@ -14,13 +15,13 @@ export default class Timers {
     public static preventRoundEnd: number | undefined;
 
     public static initTimers(): void {
-        Timers.roundTimer = getObjectFromGUID(TimerGuids.round)
+        Timers.roundTimer = getObjectFromGUID(TimerGuids.round) as GObject
         if (Timers.roundTimer !== undefined) {
             Timers.roundTimer.setValue(Settings.loadTime)
             Timers.roundTimer.Clock.paused = false
             State.roundState = RoundState.Betting
         }
-        Timers.bonusTimer = getObjectFromGUID(TimerGuids.bonus)
+        Timers.bonusTimer = getObjectFromGUID(TimerGuids.bonus) as GObject
     }
 
     public static resetBonusTimer(time: number) {
@@ -43,9 +44,9 @@ export default class Timers {
             if (Timers.roundTimer.getValue() as number <= 0 && (Timers.preventRoundEnd === undefined || os.time() > Timers.preventRoundEnd)) {
                 Timers.preventRoundEnd = undefined
                 if (State.roundState === RoundState.Betting) {
-                    // TODO dealButtonPressed(undefined, 'Lua')
+                    ZoneButtons.dealButtonPressed(undefined, 'Lua')
                 } else if (State.roundState === RoundState.Powerups) {
-                    // TODO payButtonPressed(undefined, 'Lua')
+                    ZoneButtons.payButtonPressed(undefined, 'Lua')
                 } else if (State.roundState === RoundState.Playing && !State.dealersTurn && Settings.turnTimeLimit > 0 && !State.turnActive) {
                     State.turnActive = true
                     if (State.currentPlayerTurn !== 'Nobody') {

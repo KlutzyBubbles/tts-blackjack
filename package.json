@@ -12,6 +12,7 @@
   "author": "KlutzyBubbles",
   "license": "ISC",
   "dependencies": {
+    "@typescript-to-lua/language-extensions": "^1.19.0",
     "tts-types": "^0.0.2",
     "typescript": "^5.3.3",
     "typescript-to-lua": "^1.23.0"

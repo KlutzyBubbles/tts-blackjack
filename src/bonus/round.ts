@@ -10,11 +10,11 @@ export default class RoundBonus {
     public static bonusObjects: GObject[] = [];
 
     public static initBonuses(): void {
-        RoundBonus.bonusBag = getObjectFromGUID(BagGuids.bonus)
+        RoundBonus.bonusBag = getObjectFromGUID(BagGuids.bonus) as GObject
     }
 
     public static getBonusBag(): GObject {
-        return RoundBonus.bonusBag ?? getObjectFromGUID(BagGuids.bonus)
+        return RoundBonus.bonusBag ?? getObjectFromGUID(BagGuids.bonus) as GObject
     }
 
     public static addBonus(position?: Vector): void {

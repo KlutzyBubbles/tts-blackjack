@@ -7,17 +7,17 @@ export default class BagHolders {
     public static deckBag: GObject | undefined;
 
     public static initBags(): void {
-        BagHolders.betBags = getObjectFromGUID(BagGuids.bet)
-        BagHolders.minigameBag = getObjectFromGUID(BagGuids.minigame)
-        BagHolders.deckBag = getObjectFromGUID(BagGuids.deck)
+        BagHolders.betBags = getObjectFromGUID(BagGuids.bet) as GObject
+        BagHolders.minigameBag = getObjectFromGUID(BagGuids.minigame) as GObject
+        BagHolders.deckBag = getObjectFromGUID(BagGuids.deck) as GObject
     }
 
     public static getBetBags(): GObject {
-        return BagHolders.betBags ?? getObjectFromGUID(BagGuids.bet)
+        return BagHolders.betBags ?? getObjectFromGUID(BagGuids.bet) as GObject
     }
 
-    public static getDeckBags(): GObject {
-        return BagHolders.deckBag ?? getObjectFromGUID(BagGuids.deck)
+    public static getDeckBag(): GObject {
+        return BagHolders.deckBag ?? getObjectFromGUID(BagGuids.deck) as GObject
     }
 
 }

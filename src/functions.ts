@@ -1,4 +1,4 @@
-import { PlayerSelection, SpecialHands } from "./types"
+import { PlayerSelection, ScriptCallableColor, SpecialHands } from "./types"
 
 export function colorToHex(color: Color, includeHash = false): string {
     return `${includeHash ? '#' : ''}${componentToHex(convertTo255(color.r))}${componentToHex(convertTo255(color.g))}${componentToHex(convertTo255(color.b))}`
@@ -54,9 +54,13 @@ export function isSpecialValue(value: number) {
 export function getObjects(objectsGuids: string[]) {
     let objects: GObject[] = []
     for (let guid of objectsGuids) {
-        objects.push(getObjectFromGUID(guid))
+        objects.push(getObjectFromGUID(guid) as GObject)
     }
     return objects
+}
+
+export function hasPermission(color: ScriptCallableColor | ColorLiteral): boolean {
+    return color === 'Lua' || color === 'Black' || Player[color].promoted || Player[color].host || Player[color].admin
 }
 
 export function bulkSetInteractable(objects: GObject[], interactable: boolean): void {

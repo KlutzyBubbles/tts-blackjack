@@ -9,19 +9,19 @@ import ObjectSet from "./objectSet";
 export default class Zones {
 
     public static zones: { [key in TableSelection]?: ObjectSet } = {}
-    public static deckZone: GObject | undefined;
-    public static bonusZone: GObject | undefined;
+    public static deckZone: Zone | undefined;
+    public static bonusZone: Zone | undefined;
 
     public static initZones() {
         for (let color of TableColorList) {
             Zones.initSingleZone(color, true)
         }
-        Zones.deckZone = getObjectFromGUID(OtherZones.deck)
-        Zones.bonusZone = getObjectFromGUID(OtherZones.bonus)
+        Zones.deckZone = getObjectFromGUID(OtherZones.deck) as Zone
+        Zones.bonusZone = getObjectFromGUID(OtherZones.bonus) as Zone
     }
 
-    public static getBonusZone(): GObject {
-        return Zones.bonusZone ?? getObjectFromGUID(OtherZones.bonus)
+    public static getBonusZone(): Zone {
+        return Zones.bonusZone ?? getObjectFromGUID(OtherZones.bonus) as Zone
     }
 
     public static getActionButtons(): GObject[] {
@@ -37,12 +37,12 @@ export default class Zones {
             return Zones.zones[color] as ObjectSet
         let zoneIds = ColorZones[color]
         let newZone = new ObjectSet(
-            getObjectFromGUID(zoneIds.zone),
-            getObjectFromGUID(zoneIds.container),
-            getObjectFromGUID(zoneIds.prestige),
-            getObjectFromGUID(zoneIds.actionButtons),
+            getObjectFromGUID(zoneIds.zone) as Zone,
+            getObjectFromGUID(zoneIds.container) as GObject,
+            getObjectFromGUID(zoneIds.prestige) as Zone,
+            getObjectFromGUID(zoneIds.actionButtons) as GObject,
             color,
-            getObjectFromGUID(zoneIds.table)
+            getObjectFromGUID(zoneIds.table) as Zone
         )
         Zones.zones[color] = newZone
         return newZone
@@ -52,7 +52,7 @@ export default class Zones {
         return Zones.zones[color] ?? Zones.initSingleZone(color)
     }
 
-    public static getObjectSetFromSubObject(object: GObject, key: keyof ObjectSet): ObjectSet | undefined {
+    public static getObjectSetFromSubObject(object: GObject | Zone, key: keyof ObjectSet): ObjectSet | undefined {
         if (object === undefined || !object)
             return undefined
         for (let objectSet of Object.values(Zones.zones)) {
@@ -63,7 +63,7 @@ export default class Zones {
         return undefined
     }
 
-    public static getObjectSetFromZone(zone: GObject): ObjectSet | undefined {
+    public static getObjectSetFromZone(zone: Zone): ObjectSet | undefined {
         return Zones.getObjectSetFromSubObject(zone, 'zone')
     }
 
@@ -85,7 +85,7 @@ export default class Zones {
         Timers.timerStart()
     }
 
-    public static passPlayerActions(zone: GObject): void {
+    public static passPlayerActions(zone: Zone): void {
         let nextInLine = -1;
         for (let i = 0; i < Object.keys(Zones.zones).length; i++) {
             let set = Zones.zones[Object.keys(Zones.zones)[i] as TableSelection]
