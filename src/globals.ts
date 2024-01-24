@@ -148,12 +148,12 @@ function dealInOrder(): void {
     }
     if (firstToGo === undefined) {
         Wait.time(() => {
-            // TODO whoGoesFirst({set = firstToGo})
+            firstToGo?.whoGoesFirst()
         }, 1)
     } else {
         State.concludeLockout()
         waitTime(0.6)
         State.dealersTurn = true
-        // TODO revealHandZone(Zones.getObjectSetFromColor('Dealer').zone, true)
+        Zones.getObjectSetFromColor('Dealer').revealHandZone()
     }
 }

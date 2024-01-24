@@ -5,6 +5,10 @@ export type Event = 'onBlindfold'
 | 'onPlayerChangeColor'
 | 'onObjectPickUp'
 | 'onObjectEnterContainer'
+| 'onObjectLeaveContainer'
+| 'onObjectDestroy'
+| 'onObjectDrop'
+| 'onObjectEnterScriptingZone'
 
 export class EventManager {
 
@@ -38,6 +42,22 @@ export class EventManager {
         EventManager.register('onObjectEnterContainer', func)
     }
 
+    public static onObjectLeaveContainer(func: typeof onObjectLeaveContainer) {
+        EventManager.register('onObjectLeaveContainer', func)
+    }
+
+    public static onObjectDestroy(func: typeof onObjectDestroy) {
+        EventManager.register('onObjectDestroy', func)
+    }
+
+    public static onObjectDrop(func: typeof onObjectDrop) {
+        EventManager.register('onObjectDrop', func)
+    }
+
+    public static onObjectEnterScriptingZone(func: typeof onObjectEnterScriptingZone) {
+        EventManager.register('onObjectEnterScriptingZone', func)
+    }
+
     public static run(event: Event, ...args: any): void {
         for (let func of EventManager.events[event] ?? []) {
             Logger.trace('events.manager', `run('${event}', [${args?.length}])`)
@@ -51,8 +71,12 @@ function onObjectPickUp(color: ColorLiteral, object: GObject) {
     EventManager.run('onObjectPickUp', color, object)
 }
 
-function onObjectEnterContainer(contianer: Container, object: GObject) {
-    EventManager.run('onObjectEnterContainer', contianer, object)
+function onObjectEnterContainer(container: Container, object: GObject) {
+    EventManager.run('onObjectEnterContainer', container, object)
+}
+
+function onObjectLeaveContainer(container: Container, object: GObject) {
+    EventManager.run('onObjectLeaveContainer', container, object)
 }
 
 function onBlindfold(player: Player, blindfolded: boolean) {
@@ -65,4 +89,16 @@ function onChat(message: string, sender: Player) {
 
 function onPlayerChangeColor(color: ColorLiteral) {
     EventManager.run('onPlayerChangeColor', color)
+}
+
+function onObjectDestroy(object: GObject) {
+    EventManager.run('onObjectDestroy', object)
+}
+
+function onObjectDrop(color: ColorLiteral, object: GObject) {
+    EventManager.run('onObjectDrop', color, object)
+}
+
+function onObjectEnterScriptingZone(zone: Zone, object: GObject) {
+    EventManager.run('onObjectEnterScriptingZone', zone, object)
 }

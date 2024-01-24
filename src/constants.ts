@@ -36,6 +36,11 @@ export const PowerupGuids: string[] = [
     "84928d"
 ]
 
+export const OtherObjectGuids: { [key: string]: string } = {
+    trash: 'df8d40',
+    cardHandler: '77a0c3'
+}
+
 export const TimerGuids: { [key: string]: string } = {
     bonus: '3cce5b',
     round: '8f93ac'

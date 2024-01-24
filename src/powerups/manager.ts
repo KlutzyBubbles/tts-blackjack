@@ -1,13 +1,17 @@
 import { PowerupGuids } from "../constants"
 import { generatePermissionString } from "../items/pickup"
-import { PowerupEffect, PowerupTarget } from "../types"
+import Settings from "../settings"
+import State from "../state"
+import Timers from "../timer"
+import { PowerupEffect, PowerupTarget, RoundState, SpecialHands, TableSelection } from "../types"
+import ZoneHelpers from "../zones/helpers"
 import ObjectSet from "../zones/objectSet"
 import Zones from "../zones/zones"
 import PowerupEffects from "./effects"
 
 export default class PowerupManager { 
 
-    private static definitions: { [key: string]: {
+    public static definitions: { [key: string]: {
         who: PowerupTarget,
         effect: PowerupEffect
     }} = {
@@ -115,6 +119,156 @@ export default class PowerupManager {
             clone.setDescription(`${generatePermissionString(Player[playerColor as ColorLiteral])}\n${clone.getDescription()}`)
         }
         return true
+    }
+
+    public static checkPowerupDropZone(color: ColorLiteral, object: GObject, who: PowerupTarget, effect: PowerupEffect): void {
+        for (let set of Object.values(Zones.zones)) {
+            let objectsInZone = set.zone.getObjects()
+            for (let zoneObject of objectsInZone) {
+                if (zoneObject === object) {
+                    PowerupManager.checkPowerupEffect(color, object, who, effect, set)
+                    break
+                }
+            }
+        }
+    }
+
+    public static checkPowerupEffect(color: ColorLiteral, object: GObject, who: PowerupTarget, effect: PowerupEffect, setTarget: ObjectSet): void {
+        let setUser = Zones.getObjectSetFromColor(color as TableSelection)
+        if (setUser === undefined) {
+            return
+        }
+        let setDealer = Zones.getObjectSetFromColor('Dealer')
+        if (setTarget === setDealer && State.dealingDealerCards) {
+            broadcastToColor("You can't use a powerup on the dealer while their cards are being dealt.", color, Color(1, 0.5, 0.5))
+            return
+        }
+        if (who === 'Anyone') {
+            PowerupManager.activatePowerupEffect(effect, setTarget, object, setUser)
+        } else if (who === 'Any Player' && setTarget !== setDealer) {
+            PowerupManager.activatePowerupEffect(effect, setTarget, object, setUser)
+        } else if (who === 'Other Player' && color !== setTarget.color && setTarget !== setDealer && setTarget.userColor !== color) {
+            PowerupManager.activatePowerupEffect(effect, setTarget, object, setUser)
+        } else if (who === 'Self' && (color === setTarget.color || setTarget.userColor === color)) {
+            PowerupManager.activatePowerupEffect(effect, setTarget, object, setUser)
+        } else if (who === 'Dealer' && setTarget === setDealer) {
+            PowerupManager.activatePowerupEffect(effect, setTarget, object, setUser)
+        } else if (who === setTarget.color || (setTarget.userColor !== undefined && who === setTarget.userColor)) {
+            PowerupManager.activatePowerupEffect(effect, setTarget, object, setUser)
+        } else {
+            PowerupManager.activatePowerupFailedCallback(object, setUser, setTarget)
+        }
+    }
+
+    public static activatePowerupEffect(effect: PowerupEffect, setTarget: ObjectSet, powerup: GObject, setUser: ObjectSet): void {
+        Zones.findCardsToCount()
+        Wait.frames(() => {
+            Zones.findCardsToCount()
+        }, 2)
+        let effectFunc = PowerupManager.effects[effect]
+        if (effectFunc !== undefined) {
+            if (!effectFunc(setTarget, powerup, setUser)) {
+                Wait.frames(() => {
+                    PowerupManager.activatePowerupFailedCallback(powerup, setUser, setTarget)
+                }, 1)
+                return
+            }
+        } else if (powerup.getVar('powerupUsed') !== undefined) {
+            if (!powerup.call('powerupUsed', {
+                setTarget: setTarget,
+                powerup: powerup,
+                setUser: setUser
+            })) {
+                Wait.frames(() => {
+                    PowerupManager.activatePowerupFailedCallback(powerup, setUser, setTarget)
+                }, 1)
+                return
+            }
+        } else {
+            Wait.frames(() => {
+                PowerupManager.activatePowerupFailedCallback(powerup, setUser, setTarget)
+            }, 1)
+            return
+        }
+
+        let targetString: string = setTarget.color
+        if (setTarget.color === setUser.color) {
+            targetString = 'themself'
+        } else if (setTarget.color === 'Dealer') {
+            targetString = 'the dealer'
+        }
+
+        if (setTarget.userColor !== undefined) {
+            if (setTarget.userColor === setUser.color) {
+                targetString += ' (themself)'
+            } else if (setTarget.color === 'Dealer') {
+                targetString += ' (the dealer)'
+            } else {
+                targetString += ` (${setTarget.userColor})`
+            }
+        }
+        printToAll(`Powerup event: ${setUser.color} used ${powerup.getName()} on ${targetString}.`, Color(0.5, 0.5, 1))
+
+        powerup.setPosition(setTarget.findPowerupPlacement(ZoneHelpers.findPowerupsInZone(setTarget.zone).length + 1))
+        powerup.setRotation(Vector(0, 0, 0))
+        powerup.setLock(true)
+
+        powerup.setColorTint(stringColorToRGB(setUser.color) ?? Color(1, 1, 1))
+
+        if (State.roundState === RoundState.Powerups && Timers.roundTimer !== undefined && (Timers.roundTimer.getValue() as number) < 10) {
+            Timers.preventRoundEnd = os.time() + 1
+            Timers.roundTimer.setValue(10)
+            Timers.roundTimer.Clock.paused = false
+        }
+    }
+
+    public static activatePowerupFailedCallback(object: GObject, setUser: ObjectSet, setTarget: ObjectSet): void {
+        if (object.getName().toLowerCase() === 'royal token' || object.getName().toLowerCase() === 'reward token') {
+            return
+        }
+        if (Settings.fifthCard) {
+            if (setTarget.count !== 4) {
+                return
+            }
+            let setDealer = Zones.getObjectSetFromColor('Dealer')
+            if ((setTarget.value <= 21 && setTarget.value >= setDealer.value) || (setTarget.value >= SpecialHands.LowEnd && setTarget.value <= SpecialHands.HighEnd)) {
+                return
+            }
+            if (setUser.color !== setTarget.color && setUser.color !== setTarget.userColor) {
+                setUser.giveReward('Help')
+            }
+
+            let targetString: string = setTarget.color
+            if (setTarget.color === setUser.color) {
+                targetString = 'themself'
+            } else if (setTarget.color === 'Dealer') {
+                targetString = 'the dealer'
+            }
+    
+            if (setTarget.userColor !== undefined) {
+                if (setTarget.userColor === setUser.color) {
+                    targetString += ' (themself)'
+                } else if (setTarget.color === 'Dealer') {
+                    targetString += ' (the dealer)'
+                } else {
+                    targetString += ` (${setTarget.userColor})`
+                }
+            }
+            printToAll(`Powerup event: ${setUser.color} used ${object.getName()} as a fifth card for ${targetString}.`, Color(0.5, 0.5, 1))
+            
+            object.setPosition(setTarget.findPowerupPlacement(ZoneHelpers.findPowerupsInZone(setTarget.zone).length + 1))
+            object.setRotation(Vector(0, 0, 0))
+            object.setName('Fifth Card')
+            object.setDescription('This powerup has been used as a fifth card to give this hand bust immunity.')
+            object.setLock(true)
+            
+            setTarget.count += 1
+            object.setColorTint(stringColorToRGB(setUser.color) ?? Color(1, 1, 1))
+            if (State.roundState === RoundState.Powerups && Timers.roundTimer !== undefined && (Timers.roundTimer.getValue() as number) < 10) {
+                Timers.roundTimer.setValue(10)
+                Timers.roundTimer.Clock.paused = false
+            }
+        }
     }
 
 }

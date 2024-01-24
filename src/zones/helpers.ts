@@ -1,7 +1,6 @@
 import RoundBonus from "../bonus/round";
 import { Tag } from "../constants";
 import BagHolders from "../objects/bags";
-import PowerupManager from "../powerups/manager";
 import { TableSelection } from "../types";
 import ObjectSet from "./objectSet";
 import Zones from "./zones";
@@ -172,7 +171,9 @@ export default class ZoneHelpers {
                         bet.putObject(objs[i])
                         destroyObject(objs[i])
                     }
-                    // TODO delayedCallback('validateBetBag', {bag=bet}, 0.1)
+                    Wait.time(() => {
+                        BagHolders.validateBetBag(bet)
+                    }, 0.1)
                 }
             }
         }
@@ -289,7 +290,9 @@ export default class ZoneHelpers {
         }
 
         if (placedBag !== undefined) {
-            // TODO delayedCallback('validateBetBag', {bag=placedBag}, 0.1)
+            Wait.time(() => {
+                BagHolders.validateBetBag(placedBag)
+            }, 0.1)
         }
         return true
     }

@@ -20,4 +20,15 @@ export default class BagHolders {
         return BagHolders.deckBag ?? getObjectFromGUID(BagGuids.deck) as GObject
     }
 
+    public static validateBetBag(bag?: GObject): void {
+        if (bag === undefined)
+            return
+        let fullContents = bag.getObjects()
+        let guids: { [key: string]: number } = {}
+        for (let object of fullContents) {
+            guids[object.guid] = (guids[object.guid] ?? 0) + 1
+        }
+        bag.setTable('blackjack_betBagContents', guids)
+    }
+
 }

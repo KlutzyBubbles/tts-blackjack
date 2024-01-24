@@ -42,7 +42,7 @@ export default class PowerupEffects {
         if ((cardsInZone.length > 0 || decksInZone.length > 0)
             && (!PowerupEffects.isBusted(objectSetTarget.value) && objectSetTarget.value < dealerValue && (!PowerupEffects.isBusted(dealerValue)))) {
             if (!PowerupEffects.isSelf(objectSetTarget, objectSetUser)) {
-                // TODO giveRewards
+                objectSetUser.giveReward('Help')
             }
 
             destroyObject(powerup)

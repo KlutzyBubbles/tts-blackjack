@@ -39,6 +39,17 @@ export default class ObjectSet {
         this.color = color;
     }
 
+    public getZone(key: string): Zone | undefined {
+        if (key.toLowerCase() == 'zone') {
+            return this.zone
+        } else if (key.toLowerCase() == 'prestige') {
+            return this.prestige
+        } else if (key.toLowerCase() == 'table' || key.toLowerCase() == 'tbl') {
+            return this.table
+        }
+        return undefined
+    }
+
     public displayResult(value: number, soft: boolean): void {
         this.value = value
         this.soft = soft
@@ -829,6 +840,17 @@ export default class ObjectSet {
                 CardHelpers.placeCard(pos, true, this, true, true)
             }
         }
+    }
+
+    public whoGoesFirst(): void {
+        if (this.value > 21) {
+            Zones.passPlayerActions(this.zone)
+        } else {
+            State.currentPlayerTurn = this.color
+            this.createPlayerActions(false)
+            Timers.beginTurnTimer(this, false)
+        }
+        State.concludeLockout()
     }
 
     public playerPrestige(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {

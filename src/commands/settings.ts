@@ -1,6 +1,3 @@
-import { EventManager } from "../events/manager";
-import { checkPermissions } from "../functions";
-import Logger from "../logger";
 import Settings from "../settings";
 import { PlayerSelection } from "../types";
 import { CommandRunner } from "./handler";

@@ -1,3 +1,4 @@
+import { Tag } from "../constants";
 import Zones from "../zones/zones";
 import BagHolders from "./bags";
 
@@ -30,6 +31,19 @@ export default class DeckManager {
         DeckManager.mainDeck = taken
 
         decks.destruct()
+    }
+
+    public static checkForDeck(): void {
+        let objectsInZone = Zones.deckZone?.getObjects() ?? []
+        for (let deck of objectsInZone) {
+            if (deck.hasTag(Tag.Deck)) {
+                if (DeckManager.mainDeck !== undefined && DeckManager.mainDeck !== deck) {
+                    destroyObject(DeckManager.mainDeck)
+                }
+                DeckManager.mainDeck = deck
+                break
+            }
+        }
     }
 
     public static shuffleNewDeck(): void {

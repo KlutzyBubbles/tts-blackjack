@@ -1,8 +1,9 @@
-import { ColorZones, OtherZones } from "../constants";
+import { ColorZones, OtherObjectGuids, OtherZones } from "../constants";
 import Settings from "../settings";
 import State from "../state";
 import Timers from "../timer";
 import { TableColorList, TableSelection } from "../types";
+import ZoneButtons from "./buttons";
 import ZoneHelpers from "./helpers";
 import ObjectSet from "./objectSet";
 
@@ -85,6 +86,43 @@ export default class Zones {
         Timers.timerStart()
     }
 
+    public static createButtons(): void {
+        for (let set of Object.values(Zones.zones)) {
+            set.actionButtons.createButton({
+                label: '0',
+                click_function: set.hitCard,
+                function_owner: undefined,
+                position: Vector(0, 0.25, 0),
+                rotation: Vector(0, 0, 0),
+                width: 450,
+                height: 450,
+                font_size: 300
+            })
+            set.createPlayerMetaActions()
+        }
+        let cardHandler = getObjectFromGUID(OtherObjectGuids.cardHandler)
+        cardHandler.createButton({
+            label: 'Deal\ncards',
+            click_function: ZoneButtons.dealButtonPressed,
+            function_owner: undefined,
+            position: Vector(-0.46, 0.19, -0.19),
+            rotation: Vector(0, 0, 0),
+            width: 450,
+            height: 450,
+            font_size: 150
+        })
+        cardHandler.createButton({
+            label: 'End\nround',
+            click_function: ZoneButtons.payButtonPressed,
+            function_owner: undefined,
+            position: Vector(0.46, 0.19, -0.19),
+            rotation: Vector(0, 0, 0),
+            width: 450,
+            height: 450,
+            font_size: 150
+        })
+    }
+
     public static passPlayerActions(zone: Zone): void {
         let nextInLine = -1;
         for (let i = 0; i < Object.keys(Zones.zones).length; i++) {
@@ -94,7 +132,7 @@ export default class Zones {
             if (set.color === 'Dealer') {
                 State.dealersTurn = true
                 State.currentPlayerTurn = 'Nobody'
-                // TODO revealHandZone(set.zone, true)
+                set.revealHandZone()
                 if (Settings.turnTimeLimit > 0 && Timers.roundTimer !== undefined) {
                     Timers.roundTimer.setValue(0)
                     Timers.roundTimer.Clock.paused = false

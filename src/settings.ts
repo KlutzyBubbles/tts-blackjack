@@ -43,9 +43,13 @@ export default class Settings {
 
     public static turnTimeLimit: number = 0;
 
+    public static fifthCard: boolean = true;
     public static splitOnValue: boolean = false;
     public static dealerAceIsOne: boolean = true;
 
     public static turnTimeLimitEnds: boolean = true;
+
+    public static allowChipTrading: boolean = true;
+    public static allowPowerupTrading: boolean = true;
 
 }
