@@ -1,7 +1,7 @@
-import "./events"
 import Logger, { LogLevel } from "./logger";
-import "./ui"
-import "./items"
+import "./events";
+import "./ui";
+import "./items";
 import CommandHandler from "./commands/handler";
 import SettingsCommand from "./commands/settings";
 import { bulkSetInteractable, getObjects } from "./functions";
@@ -13,6 +13,12 @@ import Timers from "./timer";
 import BagHolders from "./objects/bags";
 import Rewards from "./objects/rewards";
 import PowerupManager from "./powerups/manager";
+import "./commands/handler";
+import "./events/onObjectDestroy";
+import State from "./state";
+import { PowerupEffect, PowerupTarget } from "./types";
+import ObjectSet from "./zones/objectSet";
+import { clearBonus, createZoneButtons, effects, findCardsToCount } from "./zones/functions";
 
 function onLoad(saveData?: any) {
     Logger.level = LogLevel.Trace
@@ -23,6 +29,7 @@ function onLoad(saveData?: any) {
     Logger.warn('index', 'WARNERS')
     Logger.error('index', 'ERRORIST')
 
+    State.roundState = 1
     CommandHandler.register('settings', new SettingsCommand())
     Zones.initZones()
     Timers.initTimers()
@@ -34,10 +41,10 @@ function onLoad(saveData?: any) {
     bulkSetInteractable(getObjects(ObjectLockdown), false)
     bulkSetInteractable(Zones.getActionButtons(), false)
 
-    Zones.createButtons()
+    createZoneButtons()
     DeckManager.checkForDeck()
-    Zones.findCardsToCount()
-    RoundBonus.clearBonus()
+    findCardsToCount()
+    clearBonus()
 }
 
 function clickSave() {
@@ -54,4 +61,29 @@ function clickQuicksave() {
 
 function clickPrestige() {
     print("Prestige")
+}
+
+function AddPowerup(data?: {
+    obj?: GObject,
+    who?: PowerupTarget,
+    effectName?: PowerupEffect,
+    func?: (objectSetTarget: ObjectSet, powerup: GObject, objectSetUser: ObjectSet) => boolean
+}): void {
+    if (data === undefined || data.obj === undefined || data.who === undefined) {
+        return
+    }
+    let name = data.obj.getName()
+    if (name === undefined || name === '' || PowerupManager.definitions[name] !== undefined) {
+        return
+    }
+    let effectName = data.effectName
+    if (effectName === undefined || effectName as string === '') {
+        return
+    }
+    PowerupManager.definitions[name] = {
+        who: data.who,
+        effect: effectName
+    }
+    effects[effectName] = effects[effectName] ?? data.func
+    PowerupManager.powerups[name] = data.obj.getGUID()
 }

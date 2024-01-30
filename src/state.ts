@@ -5,9 +5,9 @@ import { RoundState, TableSelection } from "./types";
 export default class State {
 
     public static roundState: RoundState = RoundState.Betting
-    public static roundStateObject: GObject | undefined;
+    public static roundStateObject: GObject | undefined = undefined;
 
-    public static lastCard: GObject | undefined;
+    public static lastCard: GObject | undefined = undefined;
 
     public static dealersTurn: boolean = false
     public static dealingDealerCards: boolean = false
@@ -33,7 +33,7 @@ export default class State {
             && State.roundStateObject.getStateId() !== -1
             && State.roundStateObject.getStateId() !== stateId) {
             State.roundStateObject.setState(stateId)
-            // State.roundState = stateId
+            State.roundState = stateId
         }
     }
 
@@ -47,15 +47,6 @@ export default class State {
                 return State.roundStateObject.getStateId()
         }
         return RoundState.Unknown
-    }
-
-    public static setRoundState(stateId: RoundState, roundTime?: number): void {
-        if (Timers.roundTimer === undefined)
-            return
-        State.roundState = stateId
-        State.setRoundStateObject(stateId)
-        Timers.roundTimer.setValue(roundTime ?? 0)
-        Timers.roundTimer.Clock.paused = Timers.roundTimer.getValue() === 0
     }
 
     public static lockoutTimer(time: number): void {

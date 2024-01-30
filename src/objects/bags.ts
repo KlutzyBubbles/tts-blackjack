@@ -2,9 +2,9 @@ import { BagGuids } from "../constants";
 
 export default class BagHolders {
 
-    public static betBags: GObject | undefined;
-    public static minigameBag: GObject | undefined;
-    public static deckBag: GObject | undefined;
+    public static betBags: GObject | undefined = undefined;
+    public static minigameBag: GObject | undefined = undefined;
+    public static deckBag: GObject | undefined = undefined;
 
     public static initBags(): void {
         BagHolders.betBags = getObjectFromGUID(BagGuids.bet) as GObject

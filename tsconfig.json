@@ -17,6 +17,7 @@
     },
     "tstl": {
       "luaTarget": "5.2",
+      "luaLibImport": "require-minimal",
       "noImplicitSelf": true,
       "tstlVerbose": true,
       "luaBundle": "bundle.lua",

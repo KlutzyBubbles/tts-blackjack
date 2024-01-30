@@ -1,5 +1,5 @@
 import { checkPermissions, colorToHex } from "./functions"
-import Settings from "./settings"
+// import Settings from "./settings"
 import { PlayerSelection } from "./types"
 
 export enum LogLevel {
@@ -23,7 +23,7 @@ export default class Logger {
         [LogLevel.Error]: Color(1, 0.255, 0.255)
     }
 
-    public static level: LogLevel = LogLevel.Warn
+    public static level: LogLevel = LogLevel.Trace
 
     public static log(tag: LogLevel, label: string, value: any) {
         if (Logger.level >= tag) {
@@ -34,12 +34,12 @@ export default class Logger {
                 split.pop()
                 folder = split.join('.')
             }
-            if (Settings.ignoreFolderTags.includes(folder)) {
-                return
-            }
-            if (Settings.ignoreTags.includes(file)) {
-                return
-            }
+            // if (Settings.ignoreFolderTags.includes(folder)) {
+            //     return
+            // }
+            // if (Settings.ignoreTags.includes(file)) {
+            //     return
+            // }
             // log(logString(value, `[${label}]`, tag, true, false), undefined, tag)
             let hex = 'FFFFFF'
             //if (Logger.colors[tag] !== undefined) {

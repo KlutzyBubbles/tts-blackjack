@@ -52,5 +52,5 @@ export function preventEnterList(container: Container, object: GObject) {
     }
 }
 
-EventManager.onObjectPickUp((color, object) => pickupItemPermission(color, object))
-EventManager.onObjectEnterContainer((container, object) => preventEnterList(container, object))
+EventManager.onObjectPickUp(pickupItemPermission)
+EventManager.onObjectEnterContainer(preventEnterList)

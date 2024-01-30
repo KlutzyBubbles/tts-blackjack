@@ -1,9 +1,8 @@
-import RoundBonus from "../bonus/round";
+// import RoundBonus from "../bonus/round";
 import { Tag } from "../constants";
-import BagHolders from "../objects/bags";
+// import BagHolders from "../objects/bags";
 import { TableSelection } from "../types";
 import ObjectSet from "./objectSet";
-import Zones from "./zones";
 
 export default class ZoneHelpers {
 
@@ -93,20 +92,20 @@ export default class ZoneHelpers {
     }
 
     public static clearCardsAndPowerups(zone: Zone): void {
-        let override = RoundBonus.runBonusFunc('clearCards', { zone: zone })
-        if (override === true)
-            return
+        //let override = RoundBonus.runBonusFunc('clearCards', { zone: zone })
+        //if (override === true)
+        //    return
         let objectsToRemove = ZoneHelpers.findObjectsWithTags(zone, [Tag.Card, Tag.Deck, Tag.Powerup], false)
         for (let object of objectsToRemove) {
             destroyObject(object)
         }
-        Zones.getObjectSetFromZone(zone)?.displayResult(0, false)
+        // Zones.getObjectSetFromZone(zone)?.displayResult(0, false)
     }
 
     public static clearCardsOnly(zone: Zone): void {
-        let override = RoundBonus.runBonusFunc('clearCardsOnly', { zone: zone })
-        if (override === true)
-            return
+        //let override = RoundBonus.runBonusFunc('clearCardsOnly', { zone: zone })
+        //if (override === true)
+        //    return
         let objectsToRemove = ZoneHelpers.findObjectsWithTags(zone, [Tag.Card, Tag.Deck], false)
         for (let object of objectsToRemove) {
             destroyObject(object)
@@ -118,7 +117,7 @@ export default class ZoneHelpers {
         let zoneObjects = set.zone.getObjects()
         let currentBet: { [key: string]: number | undefined } = {}
         
-        let container: GObject | undefined;
+        let container: GObject | undefined = undefined;
         let badBagObjects = 0
 
         let refundParams: TakeObjectParameters = {}
@@ -172,7 +171,7 @@ export default class ZoneHelpers {
                         destroyObject(objs[i])
                     }
                     Wait.time(() => {
-                        BagHolders.validateBetBag(bet)
+                        //BagHolders.validateBetBag(bet)
                     }, 0.1)
                 }
             }
@@ -247,7 +246,7 @@ export default class ZoneHelpers {
         }
 
         let placedBag: GObject | undefined = undefined
-        if (BagHolders.betBags !== undefined && foundStacks.length > 1) {
+        /*if (BagHolders.betBags !== undefined && foundStacks.length > 1) {
             placedBag = BagHolders.betBags.takeObject({
                 position: zonePos,
                 rotation: Vector(0, 0, 0)
@@ -255,7 +254,7 @@ export default class ZoneHelpers {
             zonePos.y = (zonePos.y ?? 0) + 3
             placedBag.interactable = false
             placedBag.setLock(true)
-        }
+        }*/
 
         for (let i = 0; i < foundStacks.length; i++) {
             let table = foundStacks[i]
@@ -267,7 +266,7 @@ export default class ZoneHelpers {
                     })
                     zonePos.y = (zonePos.y ?? 0) + 0.1
                     if (placedBag !== undefined) {
-                        placedBag.putObject(taken)
+                        //placedBag.putObject(taken)
                     } else {
                         taken.interactable = false
                         taken.setLock(true)
@@ -281,7 +280,7 @@ export default class ZoneHelpers {
                 zonePos.y = (zonePos.y ?? 0) + (math.max(table.chip.getQuantity(), 1) * 0.6)
 
                 if (placedBag !== undefined) {
-                    placedBag.putObject(table.chip)
+                    //placedBag.putObject(table.chip)
                 } else {
                     table.chip.interactable = false
                     table.chip.setLock(true)
@@ -291,7 +290,7 @@ export default class ZoneHelpers {
 
         if (placedBag !== undefined) {
             Wait.time(() => {
-                BagHolders.validateBetBag(placedBag)
+                //BagHolders.validateBetBag(placedBag)
             }, 0.1)
         }
         return true

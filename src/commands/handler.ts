@@ -18,6 +18,7 @@ export default class CommandHandler {
     }
 
     public static playerChat(message: string, player: Player) {
+        print(`playerChat('${message}', ${player})`)
         Logger.trace('commands.handler', `playerChat('${message}', ${player})`)
         if (message.startsWith('!')) {
             Logger.trace('commands.handler', 'is command')
@@ -41,4 +42,6 @@ export default class CommandHandler {
 
 }
 
-EventManager.onChat((message, player) => CommandHandler.playerChat(message, player))
+export function initEvents(): void {
+    EventManager.onChat((message, player) => CommandHandler.playerChat(message, player))
+}

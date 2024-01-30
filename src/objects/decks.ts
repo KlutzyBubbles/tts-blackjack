@@ -4,7 +4,7 @@ import BagHolders from "./bags";
 
 export default class DeckManager {
 
-    public static mainDeck: GObject | undefined;
+    public static mainDeck: GObject | undefined = undefined;
     public static deckBool: boolean = false;
 
     public static newDeck(): void {

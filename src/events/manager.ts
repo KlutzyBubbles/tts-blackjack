@@ -15,11 +15,12 @@ export class EventManager {
     private static events: { [key in Event]?: ((...args: any) => void)[] } = {}
 
     private static register(event: Event, func: (...args: any) => void) {
-        if (EventManager.events.hasOwnProperty(event)) {
-            EventManager.events[event]?.push(func)
-        } else {
-            EventManager.events[event] = [func]
+        Logger.trace('events.manager', `Registering ${event}`)
+        print(`Registering ${event}`)
+        if (EventManager.events[event] === undefined) {
+            EventManager.events[event] = []
         }
+        EventManager.events[event]?.push(func)
     }
 
     public static onBlindfold(func: typeof onBlindfold) {
@@ -59,6 +60,7 @@ export class EventManager {
     }
 
     public static run(event: Event, ...args: any): void {
+        print(`Running ${event}`)
         for (let func of EventManager.events[event] ?? []) {
             Logger.trace('events.manager', `run('${event}', [${args?.length}])`)
             func(...args)
@@ -80,6 +82,7 @@ function onObjectLeaveContainer(container: Container, object: GObject) {
 }
 
 function onBlindfold(player: Player, blindfolded: boolean) {
+    print('blindfoldeedd')
     EventManager.run('onBlindfold', player, blindfolded)
 }
 
@@ -91,7 +94,11 @@ function onPlayerChangeColor(color: ColorLiteral) {
     EventManager.run('onPlayerChangeColor', color)
 }
 
+let countDestroy = 0
+
 function onObjectDestroy(object: GObject) {
+    print(`Destoy ${countDestroy}`)
+    countDestroy++;
     EventManager.run('onObjectDestroy', object)
 }
 

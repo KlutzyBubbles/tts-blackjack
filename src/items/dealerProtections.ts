@@ -1,11 +1,12 @@
 import RoundBonus from "../bonus/round";
 import { OtherObjectGuids, Tag } from "../constants";
 import { EventManager } from "../events/manager";
-import PowerupManager from "../powerups/manager";
-import Settings from "../settings";
-import { TableSelection } from "../types";
+import PowerupManager from "../powerups/manager"; // Problem
+//import Settings from "../settings";
+//import { TableSelection } from "../types";
+import { checkPowerupDropZone } from "../zones/functions";
 import Zones from "../zones/zones";
-import { generatePermissionString } from "./pickup";
+//import { generatePermissionString } from "./pickup";
 
 let objectHasLeftContainer: { [key: string]: Container | undefined } = {}
 let objectForceDropped: { [key: string]: boolean } = {}
@@ -28,12 +29,13 @@ export function onObjectDropped(color: ColorLiteral, object: GObject): void {
         return
     }
 
+    /*
     let power = PowerupManager.definitions[object.getName()]
     if (power !== undefined && RoundBonus.canUsePowerup(object)) {
-        PowerupManager.checkPowerupDropZone(color, object, power.who, power.effect)
+        checkPowerupDropZone(color, object, power.who, power.effect)
         return
     }
-
+/*
     if ((object.hasTag(Tag.Chip) || object.hasTag(Tag.Powerup)) && object.getDescription().startsWith(player.steam_id)) {
         let inOwnZone = false
         for (let set of Object.values(Zones.zones)) {
@@ -72,6 +74,7 @@ export function onObjectDropped(color: ColorLiteral, object: GObject): void {
             }
         }
     }
+    */
 }
 
 export function onObjectLeaveContainer(bag: Container, object: GObject): void {
@@ -115,6 +118,6 @@ export function onObjectPickedUp(color: ColorLiteral, object: GObject): void {
     }
 }
 
-EventManager.onObjectLeaveContainer((bag, object) => onObjectLeaveContainer(bag, object))
-EventManager.onObjectPickUp((color, object) => onObjectPickedUp(color, object))
-EventManager.onObjectDrop((color, object) => onObjectDropped(color, object))
+//EventManager.onObjectDrop(onObjectDropped)
+EventManager.onObjectLeaveContainer(onObjectLeaveContainer)
+EventManager.onObjectPickUp(onObjectPickedUp)

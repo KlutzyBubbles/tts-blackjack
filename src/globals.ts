@@ -2,8 +2,9 @@ import { Tag } from "./constants"
 import DeckManager from "./objects/decks"
 import Settings from "./settings"
 import State from "./state"
-import Timers from "./timer"
+import Timers, { setRoundState } from "./timer"
 import { RoundState, SpecialHands, TableSelection } from "./types"
+import { deal, findCardsToCount, hitCard, revealHandZone, updateAllDisplays, updateHandCounter, whoGoesFirst } from "./zones/functions"
 import ZoneHelpers from "./zones/helpers"
 import ObjectSet from "./zones/objectSet"
 import Zones from "./zones/zones"
@@ -33,35 +34,35 @@ function DoDealersCards(): void {
                 let pos = card.getPosition()
                 card.setRotation(Vector(0, 0, 0))
                 card.setPosition(pos)
-                Zones.updateAllDisplays()
+                updateAllDisplays()
                 waitTime(1)
             }
         }
     }
-    Zones.findCardsToCount()
-    set.updateHandCounter()
-    Zones.updateAllDisplays()
+    findCardsToCount()
+    updateHandCounter(set)
+    updateAllDisplays()
     waitTime(0.05)
 
     while (set.value < Settings.standValue && set.value <= 21 && set.value > 0 && set.count < Settings.standCount) {
         if (!State.dealingDealerCards) {
             return
         }
-        set.updateHandCounter()
+        updateHandCounter(set)
         if (set.value >= 0) {
-            set.hitCard(set.actionButtons, 'Black', false)
+            hitCard(set.actionButtons, 'Black', false)
             while (State.lastCard?.getName() === 'Joker') {
                 State.lastCard.destruct()
-                set.hitCard(set.actionButtons, 'Black', false)
-                Zones.updateAllDisplays()
+                hitCard(set.actionButtons, 'Black', false)
+                updateAllDisplays()
                 Timers.resetBonusTimer(3)
             }
         }
-        Zones.updateAllDisplays()
+        updateAllDisplays()
         waitTime(1)
-        Zones.findCardsToCount()
-        set.updateHandCounter()
-        Zones.updateAllDisplays()
+        findCardsToCount()
+        updateHandCounter(set)
+        updateAllDisplays()
         waitTime(0.5)
     }
     if (!State.dealingDealerCards) {
@@ -78,10 +79,10 @@ function DoDealersCards(): void {
         printToAll(`Dealer: Stand on ${set.value}.`, Color(0.1, 0.1, 0.1))
     }
     State.dealingDealerCards = false
-    Zones.updateAllDisplays()
+    updateAllDisplays()
     State.dealingDealerCards = false
 
-    State.setRoundState(RoundState.Powerups, Settings.powerupTime)
+    setRoundState(RoundState.Powerups, Settings.powerupTime)
 }
 
 function dealInOrder(): void {
@@ -90,7 +91,7 @@ function dealInOrder(): void {
         waitTime(1)
         DeckManager.deckBool = false
     }
-    Zones.findCardsToCount()
+    findCardsToCount()
 
     let newDealOrder: Player[] = []
     for (let player of State.dealOrder) {
@@ -125,10 +126,10 @@ function dealInOrder(): void {
     for (let i = 0; i < 2; i++) {
         for (let set of Object.values(Zones.zones).reverse()) {
             if (set.color === 'Dealer') {
-                set.deal([i])
+                deal(set, [i])
                 while (State.lastCard?.getName() === 'Jokeer') {
                     State.lastCard.destruct()
-                    set.deal([i])
+                    deal(set, [i])
                     Timers.resetBonusTimer(3)
                 }
                 waitTime(0.1)
@@ -137,7 +138,7 @@ function dealInOrder(): void {
                     if (set.color === player.color) {
                         if (firstToGo === undefined) {
                             firstToGo = set
-                            set.deal([i])
+                            deal(set, [i])
                             waitTime(0.1)
                             break
                         }
@@ -148,12 +149,14 @@ function dealInOrder(): void {
     }
     if (firstToGo === undefined) {
         Wait.time(() => {
-            firstToGo?.whoGoesFirst()
+            if (firstToGo !== undefined) {
+                whoGoesFirst(firstToGo)
+            }
         }, 1)
     } else {
         State.concludeLockout()
         waitTime(0.6)
         State.dealersTurn = true
-        Zones.getObjectSetFromColor('Dealer').revealHandZone()
+        revealHandZone(Zones.getObjectSetFromColor('Dealer'))
     }
 }

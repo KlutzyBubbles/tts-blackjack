@@ -2,12 +2,20 @@ import State from "../state";
 import Timers from "../timer";
 import { EventManager } from "./manager";
 
-export function roundTimerDestroyed(object: GObject): void {
-    if (object === Timers.roundTimer) {
-        Timers.roundTimer = undefined
-    } else if (object === State.roundStateObject) {
-        State.roundStateObject === undefined
+export class RoundTimerDestroyed {
+
+    public static countDestroy = 0
+    public static roundTimerDestroyed(object: GObject): void {
+        print(`Destyyyoy ${RoundTimerDestroyed.countDestroy}`)
+        RoundTimerDestroyed.countDestroy++;
+        let timer = Timers.roundTimer
+        print(`printeting ${timer === undefined}`)
+        if (object === Timers.roundTimer) {
+            Timers.roundTimer = undefined
+        } else if (object === State.roundStateObject) {
+            State.roundStateObject === undefined
+        }
     }
 }
 
-EventManager.onObjectDestroy((object) => roundTimerDestroyed(object))
+EventManager.onObjectDestroy(RoundTimerDestroyed.roundTimerDestroyed)

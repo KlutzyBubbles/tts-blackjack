@@ -1,6 +1,7 @@
 import RoundBonus from "../bonus/round";
 import { CardNames } from "../constants";
 import State from "../state";
+import { updateHandCounter, updateCardPositions, findCardsToCount, updateAllDisplays, canFlip, runBonusFunc } from "../zones/functions";
 import ZoneHelpers from "../zones/helpers";
 import ObjectSet from "../zones/objectSet";
 import Zones from "../zones/zones";
@@ -9,7 +10,7 @@ import DeckManager from "./decks";
 export default class CardHelpers {
 
     public static btnFlipCard(card: GObject, color: ColorLiteral): void {
-        let canFlip = RoundBonus.runBonusFunc('onCardFlip', {
+        let canFlip = runBonusFunc('onCardFlip', {
             card: card,
             col: color
         })
@@ -31,7 +32,7 @@ export default class CardHelpers {
                     object.setRotation(targetRot)
                 }
             }
-            set.updateHandCounter()
+            updateHandCounter(set)
         }
     }
 
@@ -58,7 +59,7 @@ export default class CardHelpers {
             rot.z = data.flip ? 0 : 180
             object.setRotation(rot)
         }
-        if (data.isStarter && RoundBonus.canFlip()) {
+        if (data.isStarter && canFlip()) {
             object.setTable('blackjack_playerSet', data.set)
             if (data.set.color !== 'Dealer') {
                 object.createButton({
@@ -87,10 +88,10 @@ export default class CardHelpers {
         }
         if (data.set !== undefined) {
             let set = data.set as ObjectSet
-            set.updateCardPositions()
-            set.updateHandCounter()
+            updateCardPositions(set)
+            updateHandCounter(set)
         } else {
-            Zones.findCardsToCount()
+            findCardsToCount()
         }
         if (object.held_by_color !== undefined) {
             let newObject = object.reload()
@@ -143,7 +144,7 @@ export default class CardHelpers {
         if (facedownCard === undefined) {
             return
         }
-        let facedownValue: string | number | undefined;
+        let facedownValue: string | number | undefined = undefined;
         for (let name of Object.keys(CardNames)) {
             if (name === facedownCard.getName()) {
                 facedownValue = CardNames[name]
@@ -157,8 +158,8 @@ export default class CardHelpers {
             facedownCard.setPosition(pos)
             broadcastToAll("Dealer has Blackjack!", Color(0.9, 0.2, 0.2))
             Wait.frames(() => {
-                Zones.getObjectSetFromColor('Dealer').updateHandCounter()
-                Zones.updateAllDisplays()
+                updateHandCounter(Zones.getObjectSetFromColor('Dealer'))
+                updateAllDisplays()
             }, 2)
         }
     }
