@@ -1,7 +1,8 @@
+import { tableSelectionToColorLiteral } from "../functions";
 import Settings from "../settings";
 import State from "../state";
 import Timers, { setRoundState } from "../timer";
-import { RoundState, TableSelection } from "../types";
+import { RoundState, TableSelection, Zone } from "../types";
 
 export default class ObjectSet {
 
@@ -29,7 +30,7 @@ export default class ObjectSet {
         this.color = color;
     }
 
-    public getZone(key: string): Zone | undefined {
+    public getZone(key: string): GObject | undefined {
         if (key.toLowerCase() == 'zone') {
             return this.zone
         } else if (key.toLowerCase() == 'prestige') {
@@ -46,7 +47,7 @@ export default class ObjectSet {
             setRoundState(RoundState.Playing, Settings.turnTimeLimit)
     
             if (Player[(this.userColor ?? this.color) as ColorLiteral].seated && !supressMessage) {
-                broadcastToColor(`It's your turn. You have ${Settings.turnTimeLimit} seconds to take an action or you will be forced to stand.`, this.userColor ?? this.color, Color(0.25, 1, 0.25))
+                broadcastToColor(`It's your turn. You have ${Settings.turnTimeLimit} seconds to take an action or you will be forced to stand.`, tableSelectionToColorLiteral(this.userColor ?? this.color), Color(0.25, 1, 0.25))
             }
         }
     }

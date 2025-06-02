@@ -87,8 +87,8 @@ export default class Logger {
 
     public static broadcast(message: string, who: PlayerSelection[], color: Color) {
         for (let player of getSeatedPlayers()) {
-            if (checkPermissions(who, player)) {
-                broadcastToColor(message, player.color, color)
+            if (checkPermissions(who, Player[player])) {
+                broadcastToColor(message, Player[player].color, color)
             }
         }
     }

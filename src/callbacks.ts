@@ -13,7 +13,7 @@ function giveRewardCallback(object: GObject, data?: {
 
         let player = Player[data.set.color as ColorLiteral]
         object.setName(`Player save: ${player.steam_name}`)
-        object.setDescription(player.steam_id)
+        object.setDescription(player.steam_id || 'UNKNOWN_STEAM_ID')
     }
     let pos = Vector(data.pos.x ?? 0, data.pos.y ?? 0, data.pos.z ?? 0)
     object.setPosition(pos)

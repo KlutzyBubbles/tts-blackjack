@@ -1,7 +1,8 @@
 // import RoundBonus from "../bonus/round";
 import { Tag } from "../constants";
+import { tableSelectionToColorLiteral } from "../functions";
 // import BagHolders from "../objects/bags";
-import { TableSelection } from "../types";
+import { TableSelection, Zone } from "../types";
 import ObjectSet from "./objectSet";
 
 export default class ZoneHelpers {
@@ -150,18 +151,21 @@ export default class ZoneHelpers {
                             })
                             pos.y = (pos.y ?? 0) + 8
 
-                            if (obj.hasTag(Tag.Chip)) {
-                                let count = obj.getQuantity()
-                                if (count === -1) {
-                                    count = 1
+                            if (obj !== undefined) {
+                                if (obj.hasTag(Tag.Chip)) {
+                                    let count = obj.getQuantity()
+                                    if (count === -1) {
+                                        count = 1
+                                    }
+                                    currentBet[obj.getName()] = (currentBet[obj.getName()] ?? 0) + count
                                 }
-                                currentBet[obj.getName()] = (currentBet[obj.getName()] ?? 0) + count
+                                objs.push(obj)
                             }
-                            objs.push(obj)
                         } else {
                             let taken = bet.takeObject(refundParams)
                             refundParams.position.y = math.min((refundParams.position.y ?? 0) + 0.5, 20)
-                            set.container.putObject(taken)
+                            if (taken !== undefined)
+                                set.container.putObject(taken)
                             badBagObjects += 1
                         }
                         goodIds[contents[i].guid] = (goodIds[contents[i].guid] ?? 0) - 1
@@ -177,10 +181,10 @@ export default class ZoneHelpers {
             }
         }
         if (badBagObjects > 0) {
-            broadcastToColor(`Refunded ${badBagObjects} bad object(s) in bet bag. Did you attempt to alter your bet?`, set.color, Color(1, 0.25, 0.25))
+            broadcastToColor(`Refunded ${badBagObjects} bad object(s) in bet bag. Did you attempt to alter your bet?`, tableSelectionToColorLiteral(set.color), Color(1, 0.25, 0.25))
             for (let adminColor of getSeatedPlayers()) {
-                if (adminColor.admin) {
-                    printToColor(`Refunded ${badBagObjects} bad object(s) in bet bag of player ${set.color} (${Player[set.color as ColorLiteral].steam_name}).`, adminColor.color, Color(1, 0, 0))
+                if (Player[adminColor].admin) {
+                    printToColor(`Refunded ${badBagObjects} bad object(s) in bet bag of player ${set.color} (${Player[set.color as ColorLiteral].steam_name}).`, Player[adminColor].color, Color(1, 0, 0))
                 }
             }
         }
@@ -228,8 +232,8 @@ export default class ZoneHelpers {
         }
 
         if (hasBetsLeft) {
-            broadcastToColor("Error: You don't have enough matching chips on your table.", color, Color(1, 0.25, 0.25))
-		    return false
+            broadcastToColor("Error: You don't have enough matching chips on your table.", tableSelectionToColorLiteral(color), Color(1, 0.25, 0.25))
+            return false
         }
 
         let zonePos = target.zone.getPosition()
@@ -265,11 +269,13 @@ export default class ZoneHelpers {
                         rotation: Vector(0, 0, 0)
                     })
                     zonePos.y = (zonePos.y ?? 0) + 0.1
-                    if (placedBag !== undefined) {
-                        //placedBag.putObject(taken)
-                    } else {
-                        taken.interactable = false
-                        taken.setLock(true)
+                    if (taken !== undefined) {
+                        if (placedBag !== undefined) {
+                            //placedBag.putObject(taken)
+                        } else {
+                            taken.interactable = false
+                            taken.setLock(true)
+                        }
                     }
                     zonePos.y = (zonePos.y ?? 0) + 0.6
                 }

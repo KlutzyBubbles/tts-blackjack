@@ -1,6 +1,6 @@
 import RoundBonus from "../bonus/round"
 import { SpecialHandDisplay, SoftHandDisplay, DisplayColors, CardNames, Tag, SelfDestructScript, OtherObjectGuids } from "../constants"
-import { hasPermission, isSpecialValue } from "../functions"
+import { hasPermission, isSpecialValue, tableSelectionToColorLiteral } from "../functions"
 import { generatePermissionString } from "../items/pickup"
 import Logger from "../logger"
 // import CardHelpers from "../objects/cards"
@@ -11,18 +11,22 @@ import PowerupManager from "../powerups/manager"
 import Settings from "../settings"
 import State from "../state"
 import Timers, { setRoundState } from "../timer"
-import { SpecialHands, RoundState, RewardName, TableSelection, ScriptCallableColor, PowerupEffect, PowerupTarget } from "../types"
+import { SpecialHands, RoundState, RewardName, TableSelection, ScriptCallableColor, PowerupEffect, PowerupTarget, Zone } from "../types"
 import ZoneHelpers from "./helpers"
 import ObjectSet from "./objectSet"
 import Zones from "./zones"
 
+const LOG_LABEL = "zones.functions"
+
 export function displayResult(objectSet: ObjectSet, value: number, soft: boolean): void {
+    Logger.trace(LOG_LABEL, `displayResult(${objectSet.color}, ${value}, ${soft})`)
     objectSet.value = value
     objectSet.soft = soft
     updateHandDisplay(objectSet)            
 }
 
 export function updateHandDisplay(objectSet: ObjectSet): void {
+    Logger.trace(LOG_LABEL, `updateHandDisplay(${objectSet.color})`)
     let valueLabel: string = `${objectSet.value}`
     if (isSpecialValue(objectSet.value)) {
         valueLabel = SpecialHandDisplay[objectSet.value as SpecialHands] ?? `${objectSet.value}`
@@ -38,6 +42,7 @@ export function updateHandDisplay(objectSet: ObjectSet): void {
 }
 
 export function updateHandCounter(objectSet: ObjectSet): void {
+    Logger.trace(LOG_LABEL, `updateHandCounter(${objectSet.color})`)
     let cardList = ZoneHelpers.findCardsInZone(objectSet.zone)
     let deckList = ZoneHelpers.findDecksInZone(objectSet.zone)
     let powerupList = ZoneHelpers.findPowerupsInZone(objectSet.zone)
@@ -57,6 +62,7 @@ export function updateHandCounter(objectSet: ObjectSet): void {
 }
 
 export function updateCardPositions(objectSet: ObjectSet): void {
+    Logger.trace(LOG_LABEL, `updateCardPositions(${objectSet.color})`)
     let cards = ZoneHelpers.findCardsInZone(objectSet.zone)
     cards.sort((a, b) => {
         let aStarter = a.getTable('blackjack_playerSet')
@@ -89,6 +95,7 @@ export function updateCardPositions(objectSet: ObjectSet): void {
 }
 
 export function obtainCardNames(objectSet: ObjectSet, cardList: GObject[], deckList: GObject[], powerupList: GObject[]) {
+    Logger.trace(LOG_LABEL, `obtainCardNames(${objectSet.color}, [${cardList.join(', ')}], [${powerupList.join(', ')}])`)
     let validCards: string[] = []
     let facedownCount = 0
     let facedownCard: GObject | undefined = undefined
@@ -124,6 +131,7 @@ export function obtainCardNames(objectSet: ObjectSet, cardList: GObject[], deckL
 }
 
 export function addCardValues(objectSet: ObjectSet, cardList: string[], facedownCount: number, facedownCard: GObject | undefined): void {
+    Logger.trace(LOG_LABEL, `addCardValues(${objectSet.color}, [${cardList.join(', ')}], ${facedownCount}, ${facedownCard})`)
     let value = 0, aceCount = 0, sevenCount = 0, tenCount = 0, jokerCount = 0, dealerBust = 0
     let stopCount = false
     for (let card of cardList) {
@@ -207,15 +215,22 @@ export function addCardValues(objectSet: ObjectSet, cardList: string[], facedown
 }
 
 export function checkCurrentTurn(objectSet: ObjectSet): boolean {
+    Logger.trace(LOG_LABEL, `checkCurrentTurn(${objectSet.color})`)
     if (objectSet.color !== State.currentPlayerTurn) {
         clearPlayerActions(objectSet, false)
-        broadcastToColor("Error: It's not your turn.", objectSet.color, Color(1, 0.25, 0.25))
+        broadcastToColor("Error: It's not your turn.", tableSelectionToColorLiteral(objectSet.color), Color(1, 0.25, 0.25))
         return false
     }
     return true
 }
 
 export function playerStand(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+    Logger.trace(LOG_LABEL, `playerStand(${_actionButtons}, ${color}, ${altClick})`)
+    return localPlayerStand(_actionButtons, color, altClick);
+}
+
+function localPlayerStand(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+    Logger.trace(LOG_LABEL, `localPlayerStand(${_actionButtons}, ${color}, ${altClick})`)
     let objectSet = Zones.getObjectSetFromColor(color as TableSelection)
     if (objectSet.canInitiateAction(color)) {
         if (altClick || !checkCurrentTurn(objectSet)) {
@@ -243,6 +258,12 @@ export function playerStand(_actionButtons: GObject, color: ColorLiteral, altCli
 }
 
 export function playerSplit(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+    Logger.trace(LOG_LABEL, `playerSplit(${_actionButtons}, ${color}, ${altClick})`)
+    return localPlayerSplit(_actionButtons, color, altClick)
+}
+
+function localPlayerSplit(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+    Logger.trace(LOG_LABEL, `localPlayerSplit(${_actionButtons}, ${color}, ${altClick})`)
     let objectSet = Zones.getObjectSetFromColor(color as TableSelection)
     if (objectSet.canInitiateAction(color)) {
         if (altClick || !checkCurrentTurn(objectSet)) {
@@ -285,7 +306,7 @@ export function playerSplit(_actionButtons: GObject, color: ColorLiteral, altCli
                     splitSet.userColor = objectSet.userColor ?? objectSet.color
                     splitSet.prestige = objectSet.prestige
                     splitSet.table = objectSet.table
-                    splitSet.container.setColorTint(stringColorToRGB(objectSet.userColor ?? objectSet.color) ?? Color(1, 1, 1))
+                    splitSet.container.setColorTint(stringColorToRGB(tableSelectionToColorLiteral(objectSet.userColor ?? objectSet.color)) ?? Color(1, 1, 1))
 
                     cards[0].setPosition(findCardPlacement(splitSet, 1))
                     cards[0].setTable('blackjack_playerSet', splitSet)
@@ -312,6 +333,12 @@ export function playerSplit(_actionButtons: GObject, color: ColorLiteral, altCli
 }
 
 export function playerHit(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+    Logger.trace(LOG_LABEL, `playerHit(${_actionButtons}, ${color}, ${altClick})`)
+    return localPlayerHit(_actionButtons, color, altClick);
+}
+
+function localPlayerHit(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+    Logger.trace(LOG_LABEL, `localPlayerHit(${_actionButtons}, ${color}, ${altClick})`)
     let objectSet = Zones.getObjectSetFromColor(color as TableSelection)
     if (objectSet.canInitiateAction(color)) {
         if (altClick || !checkCurrentTurn(objectSet)) {
@@ -348,6 +375,12 @@ export function playerHit(_actionButtons: GObject, color: ColorLiteral, altClick
 }
 
 export function playerDouble(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+    Logger.trace(LOG_LABEL, `playerDouble(${_actionButtons}, ${color}, ${altClick})`)
+    return localPlayerDouble(_actionButtons, color, altClick);
+}
+
+function localPlayerDouble(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+    Logger.trace(LOG_LABEL, `localPlayerDouble(${_actionButtons}, ${color}, ${altClick})`)
     let objectSet = Zones.getObjectSetFromColor(color as TableSelection)
     if (objectSet.canInitiateAction(color)) {
         if (altClick || !checkCurrentTurn(objectSet)) {
@@ -395,6 +428,12 @@ export function playerDouble(_actionButtons: GObject, color: ColorLiteral, altCl
 }
 
 export function hitCard(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+    Logger.trace(LOG_LABEL, `hitCard(${_actionButtons}, ${color}, ${altClick})`)
+    return localHitCard(_actionButtons, color, altClick);
+}
+
+function localHitCard(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+    Logger.trace(LOG_LABEL, `localHitCard(${_actionButtons}, ${color}, ${altClick})`)
     let objectSet = Zones.getObjectSetFromColor(color as TableSelection)
     if (altClick) {
         return
@@ -414,6 +453,7 @@ export function hitCard(_actionButtons: GObject, color: ColorLiteral, altClick: 
 }
 
 export function delayedCreatePlayerActions(objectSet: ObjectSet): void {
+    Logger.trace(LOG_LABEL, `delayedCreatePlayerActions(${objectSet.color})`)
     let betsInZone = ZoneHelpers.findBetsInZone(objectSet.zone).length
     let cardsInZone = ZoneHelpers.findCardsInZone(objectSet.zone).length
     let decksInZone = ZoneHelpers.findDecksInZone(objectSet.zone).length
@@ -425,6 +465,7 @@ export function delayedCreatePlayerActions(objectSet: ObjectSet): void {
 }
 
 export function forcedCardDraw(objectSet: ObjectSet): void {
+    Logger.trace(LOG_LABEL, `forcedCardDraw(${objectSet.color})`)
     let targetCardList = ZoneHelpers.findCardsInZone(objectSet.zone)
     let cardToDraw = targetCardList.length + 1
     let pos = findCardPlacement(objectSet, cardToDraw)
@@ -432,6 +473,7 @@ export function forcedCardDraw(objectSet: ObjectSet): void {
 }
 
 export function findCardPlacement(objectSet: ObjectSet, spot: number): Vector {
+    Logger.trace(LOG_LABEL, `findCardPlacement(${objectSet.color}, ${spot})`)
     let override = runBonusFunc('findCardPlacement', {
         zone: objectSet.zone,
         spot: spot
@@ -459,6 +501,7 @@ export function findCardPlacement(objectSet: ObjectSet, spot: number): Vector {
 }
 
 export function findPowerupPlacement(objectSet: ObjectSet, spot: number): Vector {
+    Logger.trace(LOG_LABEL, `findPowerupPlacement(${objectSet.color}, ${spot})`)
     let override = runBonusFunc('findPowerupPlacement', {
         zone: objectSet.zone,
         spot: spot
@@ -476,6 +519,7 @@ export function findPowerupPlacement(objectSet: ObjectSet, spot: number): Vector
 }
 
 export function checkForBust(objectSet: ObjectSet, addCard?: string): void {
+    Logger.trace(LOG_LABEL, `checkForBust(${objectSet.color}, ${addCard})`)
     if (objectSet.value > 21) {
         clearPlayerActions(objectSet, false)
         State.lockoutTimer(0.75)
@@ -502,6 +546,7 @@ export function checkForBust(objectSet: ObjectSet, addCard?: string): void {
 }
 
 export function giveReward(objectSet: ObjectSet, rewardName: RewardName): void {
+    Logger.trace(LOG_LABEL, `giveReward(${objectSet.color}, ${rewardName})`)
     let reward = Rewards.rewards[rewardName]
     if (reward === undefined) {
         return
@@ -521,23 +566,26 @@ export function giveReward(objectSet: ObjectSet, rewardName: RewardName): void {
     
     let object: GObject | undefined = undefined;
     for (let itemData of reward.getObjects()) {
-        params.position.y = (params.position.y ?? 0) + 0.1
+        if (params.position !== undefined)
+            params.position.y = (params.position.y ?? 0) + 0.1
         params.params.pos = params.position
 
         let item = getObjectFromGUID(itemData.guid)
         let player = Player[objectSet.color as ColorLiteral]
-        if (item.hasTag(Tag.Infinite)) {
-            object = item.takeObject(params)
-        } else if (object?.hasTag(Tag.SaveBag)) {
-            object = item.clone(params)
-            object.reset()
+        if (item !== undefined) {
+            if (item.hasTag(Tag.Infinite)) {
+                object = item.takeObject(params)
+            } else if (object?.hasTag(Tag.SaveBag)) {
+                object = item.clone(params)
+                object.reset()
 
-            object.setName(`Player save: ${player.steam_name}`)
-            object.setDescription(player.steam_id)
-        } else {
-            object = item.clone(params)
+                object.setName(`Player save: ${player.steam_name}`)
+                object.setDescription(player.steam_id ?? 'UNKNOWN_STEAM_ID')
+            } else {
+                object = item.clone(params)
 
-            object.setDescription(`${generatePermissionString(player)}\n\n${object.getDescription()}`)
+                object.setDescription(`${generatePermissionString(player)}\n\n${object.getDescription()}`)
+            }
         }
 
         if (object !== undefined) {
@@ -548,6 +596,7 @@ export function giveReward(objectSet: ObjectSet, rewardName: RewardName): void {
 }
 
 export function calculatePayout(objectSet: ObjectSet): number {
+    Logger.trace(LOG_LABEL, `calculatePayout(${objectSet.color})`)
     let multiplier = 1
     if (objectSet.value === SpecialHands.DoubleJoker && objectSet.count === 2) {
         giveReward(objectSet, 'DoubleJoker')
@@ -585,6 +634,7 @@ export function calculatePayout(objectSet: ObjectSet): number {
 }
 
 export function processPayout(objectSet: ObjectSet, iterations: number, lockedOnly: boolean): void {
+    Logger.trace(LOG_LABEL, `processPayout(${objectSet.color}, ${iterations}, ${lockedOnly})`)
     let zoneObjects = ZoneHelpers.findBetsInZone(objectSet.zone)
     let badBagObjects = 0
 
@@ -606,7 +656,8 @@ export function processPayout(objectSet: ObjectSet, iterations: number, lockedOn
                         let taken = bet.takeObject(params)
 
                         params.position.y = math.min((params.position.y ?? 0) + 0.5, 20)
-                        objectSet.container.putObject(taken)
+                        if (taken !== undefined)
+                            objectSet.container.putObject(taken)
 
                         badBagObjects += 1
                     }
@@ -629,9 +680,10 @@ export function processPayout(objectSet: ObjectSet, iterations: number, lockedOn
 
             if (!bet.getDescription().startsWith(playerId ?? 'noplayerid!$&VDW$#$')) {
                 let foundPlayer = false
-                for (let player of getSeatedPlayers()) {
+                for (let playerColor of getSeatedPlayers()) {
+                    let player = Player[playerColor];
                     let targetSet = Zones.getObjectSetFromColor(player.color as TableSelection)
-                    if (player.seated && bet.getDescription().startsWith(player.steam_id) && targetSet !== undefined) {
+                    if (player.seated && bet.getDescription().startsWith(player.steam_id || 'UNKNOWN_STEAM_ID') && targetSet !== undefined) {
                         foundPlayer = true
                         for (let i = 1; i <= iterations; i++) {
                             Wait.time(() => {
@@ -665,16 +717,17 @@ export function processPayout(objectSet: ObjectSet, iterations: number, lockedOn
     }
 
     if (badBagObjects > 0) {
-        broadcastToColor(`Refunded ${badBagObjects} bad object(s) in bet bag. Did you attempt to alter your bet?`, objectSet.color, Color(1, 0.25, 0.25))
+        broadcastToColor(`Refunded ${badBagObjects} bad object(s) in bet bag. Did you attempt to alter your bet?`, tableSelectionToColorLiteral(objectSet.color), Color(1, 0.25, 0.25))
         for (let adminColor of getSeatedPlayers()) {
-            if (adminColor.admin) {
-                printToColor(`Refunded ${badBagObjects} bad object(s) in bet bag of player ${objectSet.color} (${Player[objectSet.color as ColorLiteral].steam_name}).`, adminColor.color, Color(1, 0, 0))
+            if (Player[adminColor].admin) {
+                printToColor(`Refunded ${badBagObjects} bad object(s) in bet bag of player ${objectSet.color} (${Player[objectSet.color as ColorLiteral].steam_name}).`, Player[adminColor].color, Color(1, 0, 0))
             }
         }
     }
 }
 
 export function payBet(objectSet: ObjectSet, bet: GObject, final: boolean) {
+    Logger.trace(LOG_LABEL, `payBet(${objectSet.color}, ${bet}, ${final})`)
     let params: CloneParameters = {}
     params.position = objectSet.container.getPosition()
     params.position.y = (params.position.y ?? 0) + 0.25
@@ -696,15 +749,18 @@ export function payBet(objectSet: ObjectSet, bet: GObject, final: boolean) {
         payout.destruct()
     } else if (bet.hasTag(Tag.BetBag)) {
         let payout = bet.takeObject(params)
+        if (payout !== undefined) {
+            for (let i = 0; payout.getQuantity(); i++) {
+                let taken = payout.takeObject(params)
+                if (taken !== undefined) {
+                    taken.setPosition(params.position)
 
-        for (let i = 0; payout.getQuantity(); i++) {
-            let taken = payout.takeObject(params)
-            taken.setPosition(params.position)
-
-            taken.setLock(true)
-            params.position.y = math.min((params.position.y ?? 0) + 0.5, 20)
+                    taken.setLock(true)
+                }
+                params.position.y = math.min((params.position.y ?? 0) + 0.5, 20)
+            }
+            payout.destruct()
         }
-        payout.destruct()
     }
     if (final) {
         bet.destruct()
@@ -712,6 +768,7 @@ export function payBet(objectSet: ObjectSet, bet: GObject, final: boolean) {
 }
 
 export function clearBets(objectSet: ObjectSet, lockedOnly: boolean): void {
+    Logger.trace(LOG_LABEL, `clearBets(${objectSet.color}, ${lockedOnly})`)
     let override = runBonusFunc('clearBets', {
         zone: objectSet.zone,
         lockedOnly: lockedOnly
@@ -734,11 +791,13 @@ export function clearBets(objectSet: ObjectSet, lockedOnly: boolean): void {
                 for (let subObject of contents) {
                     if (lockedOnly && goodIds[subObject.guid] === undefined || goodIds[subObject.guid] <= 0) {
                         let taken = object.takeObject(params)
-                        objectSet.container.putObject(taken)
+                        if (taken !== undefined)
+                            objectSet.container.putObject(taken)
                         badBagObjects += 1
                     } else {
                         let taken = object.takeObject(params)
-                        destroyObject(taken)
+                        if (taken !== undefined)
+                            destroyObject(taken)
                         goodIds[subObject.guid] = (goodIds[subObject.guid] ?? 0) + 1
                     }
                     params.position.y = math.min((params.position.y ?? 0) + 0.5, 20)
@@ -750,16 +809,17 @@ export function clearBets(objectSet: ObjectSet, lockedOnly: boolean): void {
     }
 
     if (badBagObjects > 0) {
-        broadcastToColor(`Refunded ${badBagObjects} bad objects in bet bag(s). Did you attempt to alter your bet?`, objectSet.color, Color(1, 0.25, 0.25))
+        broadcastToColor(`Refunded ${badBagObjects} bad objects in bet bag(s). Did you attempt to alter your bet?`, tableSelectionToColorLiteral(objectSet.color), Color(1, 0.25, 0.25))
         for (let adminColor of getSeatedPlayers()) {
-            if (adminColor.admin) {
-                printToColor(`Refunded ${badBagObjects} bad object(s) in bet bag of player ${objectSet.color} (${Player[objectSet.color as ColorLiteral].steam_name}).`, adminColor.color, Color(1, 0, 0))
+            if (Player[adminColor].admin) {
+                printToColor(`Refunded ${badBagObjects} bad object(s) in bet bag of player ${objectSet.color} (${Player[objectSet.color as ColorLiteral].steam_name}).`, Player[adminColor].color, Color(1, 0, 0))
             }
         }
     }
 }
 
 export function revealHandZone(objectSet: ObjectSet): void {
+    Logger.trace(LOG_LABEL, `revealHandZone(${objectSet.color})`)
     let targetCardList = ZoneHelpers.findCardsInZone(objectSet.zone)
     if (targetCardList.length !== 0) {
         for (let card of targetCardList) {
@@ -782,6 +842,7 @@ export function revealHandZone(objectSet: ObjectSet): void {
 }
 
 export function deal(objectSet: ObjectSet, whichCard: number[]): void {
+    Logger.trace(LOG_LABEL, `deal(${objectSet.color}, ${whichCard})`)
     let override: any;
     if (objectSet.color === 'Dealer') {
         override = runBonusFunc('dealDealer', { whichCard: whichCard })
@@ -806,6 +867,7 @@ export function deal(objectSet: ObjectSet, whichCard: number[]): void {
 }
 
 export function whoGoesFirst(objectSet: ObjectSet): void {
+    Logger.trace(LOG_LABEL, `whoGoesFirst(${objectSet.color})`)
     if (objectSet.value > 21) {
         passPlayerActions(objectSet.zone)
     } else {
@@ -818,19 +880,32 @@ export function whoGoesFirst(objectSet: ObjectSet): void {
 
 
 export function playerPrestige(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+    Logger.trace(LOG_LABEL, `playerPrestige(${_actionButtons}, ${color}, ${altClick})`)
+    return localPlayerPrestige(_actionButtons, color, altClick);
+}
+
+export function playerBankrupt(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+    Logger.trace(LOG_LABEL, `playerBankrupt(${_actionButtons}, ${color}, ${altClick})`)
+    return localPlayerBankrupt(_actionButtons, color, altClick);
+}
+
+function localPlayerPrestige(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+    Logger.trace(LOG_LABEL, `playerPrestige(${_actionButtons}, ${color}, ${altClick})`)
     // TODO Whole prestige functoin
     Logger.error('zones.objectSet', 'Not implemented')
 }
 
-export function playerBankrupt(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+function localPlayerBankrupt(_actionButtons: GObject, color: ColorLiteral, altClick: boolean): void {
+    Logger.trace(LOG_LABEL, `playerBankrupt(${_actionButtons}, ${color}, ${altClick})`)
     // TODO Whole bankrupt functoin
     Logger.error('zones.objectSet', 'Not implemented')
 }
 
 export function createPlayerActions(objectSet: ObjectSet, simpleOnly: boolean): void {
+    Logger.trace(LOG_LABEL, `createPlayerActions(${objectSet.color}, ${simpleOnly})`)
     objectSet.actionButtons.createButton({
         label: 'Stand',
-        click_function: playerStand,
+        click_function: 'localPlayerStand',
         function_owner: undefined,
         position: Vector(-1, 0.25, 0),
         rotation: Vector(0, 0, 0),
@@ -840,7 +915,7 @@ export function createPlayerActions(objectSet: ObjectSet, simpleOnly: boolean): 
     })
     objectSet.actionButtons.createButton({
         label: 'Hit',
-        click_function: playerHit,
+        click_function: 'localPlayerHit',
         function_owner: undefined,
         position: Vector(1, 0.25, 0),
         rotation: Vector(0, 0, 0),
@@ -857,7 +932,7 @@ export function createPlayerActions(objectSet: ObjectSet, simpleOnly: boolean): 
         if (cards[0].getName() === cards[1].getName() || Settings.splitOnValue) {
             objectSet.actionButtons.createButton({
                 label: 'Split',
-                click_function: playerSplit,
+                click_function: 'localPlayerSplit',
                 function_owner: undefined,
                 position: Vector(-1, 0.25, -0.65),
                 rotation: Vector(0, 0, 0),
@@ -871,7 +946,7 @@ export function createPlayerActions(objectSet: ObjectSet, simpleOnly: boolean): 
     if (cards.length === 2) {
         objectSet.actionButtons.createButton({
             label: 'Double',
-            click_function: playerDouble,
+            click_function: 'localPlayerDouble',
             function_owner: undefined,
             position: Vector(1, 0.25, -0.65),
             rotation: Vector(0, 0, 0),
@@ -883,10 +958,11 @@ export function createPlayerActions(objectSet: ObjectSet, simpleOnly: boolean): 
 }
 
 export function clearPlayerActions(objectSet: ObjectSet, extraOnly: boolean): void {
+    Logger.trace(LOG_LABEL, `clearPlayerActions(${objectSet.color}, ${extraOnly})`)
     objectSet.actionButtons.clearButtons()
     objectSet.actionButtons.createButton({
         label: '0',
-        click_function: hitCard,
+        click_function: 'localHitCard',
         function_owner: undefined,
         color: DisplayColors.clear,
         position: Vector(0, 0.25, 0),
@@ -904,11 +980,12 @@ export function clearPlayerActions(objectSet: ObjectSet, extraOnly: boolean): vo
 }
 
 export function createPlayerMetaActions(objectSet: ObjectSet): void {
+    Logger.trace(LOG_LABEL, `createPlayerMetaActions(${objectSet.color})`)
     if (objectSet.table !== undefined && objectSet.table !== objectSet.zone && objectSet.color !== 'Dealer') {
         objectSet.table.clearButtons()
         let scaleTable = objectSet.table.getScale()
         objectSet.table.createButton({
-            click_function: playerPrestige,
+            click_function: 'localPlayerPrestige',
             label: 'Prestige',
             function_owner: undefined,
             position: Vector(-0.13, -0.435, -0.48),
@@ -920,7 +997,7 @@ export function createPlayerMetaActions(objectSet: ObjectSet): void {
             color: Color(0.5, 0.5, 0.5)
         })
         objectSet.table.createButton({
-            click_function: playerBankrupt,
+            click_function: 'localPlayerBankrupt',
             label: 'Bankrupt',
             function_owner: undefined,
             position: Vector(0.13, -0.435, -0.48),
@@ -935,6 +1012,7 @@ export function createPlayerMetaActions(objectSet: ObjectSet): void {
 }
 
 export function getHandDisplayColor(objectSet: ObjectSet): Color {
+    Logger.trace(LOG_LABEL, `getHandDisplayColor(${objectSet.color})`)
     if (objectSet.color === 'Dealer' || objectSet.value === 0) {
         return DisplayColors.clear
     }
@@ -964,18 +1042,19 @@ export function getHandDisplayColor(objectSet: ObjectSet): Color {
 }
 
 export function timerStart(): void {
+    Logger.trace(LOG_LABEL, `timerStart()`)
     Wait.time(() => timerStart, 0.5)
     if ((Timers.bonusTimer?.getValue() ?? 0) as number < 1) {
         Timers.resetBonusTimer(Settings.bonusTime)
         bonusRound()
     }
 
-    if (os.time() >= State.nextAutoCardCount) {
+    if (Time.time >= State.nextAutoCardCount) {
         findCardsToCount()
     }
 
     if (Timers.roundTimer !== undefined) {
-        if (Timers.roundTimer.getValue() as number <= 0 && (Timers.preventRoundEnd === undefined || os.time() > Timers.preventRoundEnd)) {
+        if (Timers.roundTimer.getValue() as number <= 0 && (Timers.preventRoundEnd === undefined || Time.time > Timers.preventRoundEnd)) {
             Timers.preventRoundEnd = undefined
             if (State.roundState === RoundState.Betting) {
                 dealButtonPressed(undefined, 'Lua')
@@ -993,7 +1072,7 @@ export function timerStart(): void {
             }
         }
 
-        if (Timers.roundTimer.Clock.paused && (State.roundState === RoundState.Betting || State.roundState === RoundState.Powerups)) {
+        if (Timers.roundTimer.Clock !== undefined && Timers.roundTimer.Clock.paused && (State.roundState === RoundState.Betting || State.roundState === RoundState.Powerups)) {
             State.setRoundStateObject(RoundState.Paused)
         } else {
             let objectState = State.getRoundStateFromObject()
@@ -1006,8 +1085,13 @@ export function timerStart(): void {
     }
 }
 
-
 export function payButtonPressed(object: GObject | undefined, color: ScriptCallableColor) {
+    Logger.trace(LOG_LABEL, `payButtonPressed(${object}, ${color})`)
+    return localPayButtonPressed(object, color);
+}
+
+export function localPayButtonPressed(object: GObject | undefined, color: ScriptCallableColor) {
+    Logger.trace(LOG_LABEL, `localPayButtonPressed(${object}, ${color})`)
     if (hasPermission(color)) {
         setRoundState(RoundState.Betting, Settings.betTime)
 
@@ -1103,6 +1187,12 @@ export function payButtonPressed(object: GObject | undefined, color: ScriptCalla
 }
 
 export function dealButtonPressed(object: GObject | undefined, color: ScriptCallableColor): void {
+    Logger.trace(LOG_LABEL, `dealButtonPressed(${object}, ${color})`)
+    return localDealButtonPressed(object, color);
+}
+
+export function localDealButtonPressed(object: GObject | undefined, color: ScriptCallableColor): void {
+    Logger.trace(LOG_LABEL, `localDealButtonPressed(${object}, ${color})`)
     if (hasPermission(color)) {
         setRoundState(RoundState.Playing)
 /*
@@ -1175,7 +1265,8 @@ export function dealButtonPressed(object: GObject | undefined, color: ScriptCall
 }
 
 export function findCardsToCount(): void {
-    State.nextAutoCardCount = os.time() + 5
+    Logger.trace(LOG_LABEL, `findCardsToCount()`)
+    State.nextAutoCardCount = Time.time + 5
     for (let zone of Object.values(Zones.zones)) {
         updateHandDisplay(zone)
     }
@@ -1183,6 +1274,7 @@ export function findCardsToCount(): void {
 }
 
 export function passPlayerActions(zone: Zone): void {
+    Logger.trace(LOG_LABEL, `passPlayerActions(${zone})`)
     let nextInLine = -1;
     for (let i = 0; i < Object.keys(Zones.zones).length; i++) {
         let set = Zones.zones[Object.keys(Zones.zones)[i] as TableSelection]
@@ -1194,7 +1286,8 @@ export function passPlayerActions(zone: Zone): void {
             revealHandZone(set)
             if (Settings.turnTimeLimit > 0 && Timers.roundTimer !== undefined) {
                 Timers.roundTimer.setValue(0)
-                Timers.roundTimer.Clock.paused = false
+                if (Timers.roundTimer.Clock !== undefined)
+                    Timers.roundTimer.Clock.paused = false
             }
             break
         } else if (set.zone === zone) {
@@ -1228,10 +1321,11 @@ export function passPlayerActions(zone: Zone): void {
 }
 
 export function createZoneButtons(): void {
+    Logger.trace(LOG_LABEL, `createZoneButtons()`)
     for (let set of Object.values(Zones.zones)) {
         set.actionButtons.createButton({
             label: '0',
-            click_function: hitCard,
+            click_function: 'localHitCard',
             function_owner: undefined,
             position: Vector(0, 0.25, 0),
             rotation: Vector(0, 0, 0),
@@ -1242,9 +1336,12 @@ export function createZoneButtons(): void {
         createPlayerMetaActions(set)
     }
     let cardHandler = getObjectFromGUID(OtherObjectGuids.cardHandler)
+    if (cardHandler === undefined) {
+        return
+    }
     cardHandler.createButton({
         label: 'Deal\ncards',
-        click_function: dealButtonPressed,
+        click_function: 'localDealButtonPressed',
         function_owner: undefined,
         position: Vector(-0.46, 0.19, -0.19),
         rotation: Vector(0, 0, 0),
@@ -1254,7 +1351,7 @@ export function createZoneButtons(): void {
     })
     cardHandler.createButton({
         label: 'End\nround',
-        click_function: payButtonPressed,
+        click_function: 'localPayButtonPressed',
         function_owner: undefined,
         position: Vector(0.46, 0.19, -0.19),
         rotation: Vector(0, 0, 0),
@@ -1265,15 +1362,17 @@ export function createZoneButtons(): void {
 }
 
 export function updateAllDisplays(): void {
+    Logger.trace(LOG_LABEL, `updateAllDisplays()`)
     for (let zone of Object.values(Zones.zones)) {
         updateHandDisplay(zone)
     }
 }
 
 export function bonusRound(): void {
+    Logger.trace(LOG_LABEL, `bonusRound()`)
     let playerList = getSeatedPlayers()
     for (let player of playerList) {
-        let set = Zones.getObjectSetFromColor(player.color as TableSelection)
+        let set = Zones.getObjectSetFromColor(Player[player].color as TableSelection)
         spawnRandomPowerup(set.zone)
     }
     if (!isBonusActive()) {
@@ -1283,6 +1382,7 @@ export function bonusRound(): void {
 }
 
 export function spawnRandomPowerup(zone: Zone): boolean {
+    Logger.trace(LOG_LABEL, `spawnRandomPowerup(${zone})`)
     let powerupNames = Object.keys(PowerupManager.powerups)
     if (powerupNames.length === 0)
         return false
@@ -1323,6 +1423,7 @@ export function spawnRandomPowerup(zone: Zone): boolean {
 }
 
 export function activatePowerupEffect(effect: PowerupEffect, setTarget: ObjectSet, powerup: GObject, setUser: ObjectSet): void {
+    Logger.trace(LOG_LABEL, `activatePowerupEffect(${effect}, ${setTarget.color}, ${powerup}, ${setUser.color})`)
     findCardsToCount()
     Wait.frames(() => {
         findCardsToCount()
@@ -1375,16 +1476,18 @@ export function activatePowerupEffect(effect: PowerupEffect, setTarget: ObjectSe
     powerup.setRotation(Vector(0, 0, 0))
     powerup.setLock(true)
 
-    powerup.setColorTint(stringColorToRGB(setUser.color) ?? Color(1, 1, 1))
+    powerup.setColorTint(stringColorToRGB(tableSelectionToColorLiteral(setUser.color)) ?? Color(1, 1, 1))
 
     if (State.roundState === RoundState.Powerups && Timers.roundTimer !== undefined && (Timers.roundTimer.getValue() as number) < 10) {
-        Timers.preventRoundEnd = os.time() + 1
+        Timers.preventRoundEnd = Time.time + 1
         Timers.roundTimer.setValue(10)
-        Timers.roundTimer.Clock.paused = false
+        if (Timers.roundTimer.Clock !== undefined)
+            Timers.roundTimer.Clock.paused = false
     }
 }
 
 export function activatePowerupFailedCallback(object: GObject, setUser: ObjectSet, setTarget: ObjectSet): void {
+    Logger.trace(LOG_LABEL, `activatePowerupFailedCallback(${object}, ${setTarget.color}, ${setUser.color})`)
     if (object.getName().toLowerCase() === 'royal token' || object.getName().toLowerCase() === 'reward token') {
         return
     }
@@ -1425,10 +1528,11 @@ export function activatePowerupFailedCallback(object: GObject, setUser: ObjectSe
         object.setLock(true)
         
         setTarget.count += 1
-        object.setColorTint(stringColorToRGB(setUser.color) ?? Color(1, 1, 1))
+        object.setColorTint(stringColorToRGB(tableSelectionToColorLiteral(setUser.color)) ?? Color(1, 1, 1))
         if (State.roundState === RoundState.Powerups && Timers.roundTimer !== undefined && (Timers.roundTimer.getValue() as number) < 10) {
             Timers.roundTimer.setValue(10)
-            Timers.roundTimer.Clock.paused = false
+            if (Timers.roundTimer.Clock !== undefined)
+                Timers.roundTimer.Clock.paused = false
         }
     }
 }
@@ -1454,6 +1558,7 @@ export let effects: { [key in PowerupEffect | string]?: (objectSetTarget: Object
 }
 
 export function clear(objectSetTarget: ObjectSet, powerup: GObject, objectSetUser: ObjectSet): boolean {
+    Logger.trace(LOG_LABEL, `activatePowerupFailedCallback(${objectSetTarget.color}, ${powerup.name}, ${objectSetUser.color})`)
     if (!PowerupEffects.isPowerupState()) {
         return false
     }
@@ -1478,108 +1583,125 @@ export function clear(objectSetTarget: ObjectSet, powerup: GObject, objectSetUse
         }
         return true
     } else {
-        broadcastToColor("Must use powerup on a zone with cards in it, also the targeted player must be losing and not busted.", objectSetUser.color, Color(1, 0.5, 0.5))
+        broadcastToColor("Must use powerup on a zone with cards in it, also the targeted player must be losing and not busted.", tableSelectionToColorLiteral(objectSetUser.color), Color(1, 0.5, 0.5))
     }
     return false
 }
 
 export function altClear(objectSetTarget: ObjectSet, powerup: GObject, objectSetUser: ObjectSet): boolean {
+    Logger.trace(LOG_LABEL, `altClear(${objectSetTarget.color}, ${powerup.name}, ${objectSetUser.color})`)
     // TODO
-    broadcastToColor("Not implemented.", objectSetUser.color, Color(1, 0.5, 0.5))
+    broadcastToColor("Not implemented.", tableSelectionToColorLiteral(objectSetUser.color), Color(1, 0.5, 0.5))
     return false
 }
 
 export function redraw(objectSetTarget: ObjectSet, powerup: GObject, objectSetUser: ObjectSet): boolean {
+    Logger.trace(LOG_LABEL, `redraw(${objectSetTarget.color}, ${powerup.name}, ${objectSetUser.color})`)
     // TODO
-    broadcastToColor("Not implemented.", objectSetUser.color, Color(1, 0.5, 0.5))
+    broadcastToColor("Not implemented.", tableSelectionToColorLiteral(objectSetUser.color), Color(1, 0.5, 0.5))
     return false
 }
 
 export function redrawAll(objectSetTarget: ObjectSet, powerup: GObject, objectSetUser: ObjectSet): boolean {
+    Logger.trace(LOG_LABEL, `redrawAll(${objectSetTarget.color}, ${powerup.name}, ${objectSetUser.color})`)
     // TODO
-    broadcastToColor("Not implemented.", objectSetUser.color, Color(1, 0.5, 0.5))
+    broadcastToColor("Not implemented.", tableSelectionToColorLiteral(objectSetUser.color), Color(1, 0.5, 0.5))
     return false
 }
 
 export function swap(objectSetTarget: ObjectSet, powerup: GObject, objectSetUser: ObjectSet): boolean {
+    Logger.trace(LOG_LABEL, `swap(${objectSetTarget.color}, ${powerup.name}, ${objectSetUser.color})`)
     // TODO
-    broadcastToColor("Not implemented.", objectSetUser.color, Color(1, 0.5, 0.5))
+    broadcastToColor("Not implemented.", tableSelectionToColorLiteral(objectSetUser.color), Color(1, 0.5, 0.5))
     return false
 }
 
 export function clone(objectSetTarget: ObjectSet, powerup: GObject, objectSetUser: ObjectSet): boolean {
+    Logger.trace(LOG_LABEL, `clone(${objectSetTarget.color}, ${powerup.name}, ${objectSetUser.color})`)
     // TODO
-    broadcastToColor("Not implemented.", objectSetUser.color, Color(1, 0.5, 0.5))
+    broadcastToColor("Not implemented.", tableSelectionToColorLiteral(objectSetUser.color), Color(1, 0.5, 0.5))
     return false
 }
 
 export function destroy(objectSetTarget: ObjectSet, powerup: GObject, objectSetUser: ObjectSet): boolean {
+    Logger.trace(LOG_LABEL, `destroy(${objectSetTarget.color}, ${powerup.name}, ${objectSetUser.color})`)
     // TODO
-    broadcastToColor("Not implemented.", objectSetUser.color, Color(1, 0.5, 0.5))
+    broadcastToColor("Not implemented.", tableSelectionToColorLiteral(objectSetUser.color), Color(1, 0.5, 0.5))
     return false
 }
 
 export function reveal(objectSetTarget: ObjectSet, powerup: GObject, objectSetUser: ObjectSet): boolean {
+    Logger.trace(LOG_LABEL, `reveal(${objectSetTarget.color}, ${powerup.name}, ${objectSetUser.color})`)
     // TODO
-    broadcastToColor("Not implemented.", objectSetUser.color, Color(1, 0.5, 0.5))
+    broadcastToColor("Not implemented.", tableSelectionToColorLiteral(objectSetUser.color), Color(1, 0.5, 0.5))
     return false
 }
 
 export function stand(objectSetTarget: ObjectSet, powerup: GObject, objectSetUser: ObjectSet): boolean {
+    Logger.trace(LOG_LABEL, `stand(${objectSetTarget.color}, ${powerup.name}, ${objectSetUser.color})`)
     // TODO
-    broadcastToColor("Not implemented.", objectSetUser.color, Color(1, 0.5, 0.5))
+    broadcastToColor("Not implemented.", tableSelectionToColorLiteral(objectSetUser.color), Color(1, 0.5, 0.5))
     return false
 }
 
 export function draw1(objectSetTarget: ObjectSet, powerup: GObject, objectSetUser: ObjectSet): boolean {
+    Logger.trace(LOG_LABEL, `draw1(${objectSetTarget.color}, ${powerup.name}, ${objectSetUser.color})`)
     // TODO
-    broadcastToColor("Not implemented.", objectSetUser.color, Color(1, 0.5, 0.5))
+    broadcastToColor("Not implemented.", tableSelectionToColorLiteral(objectSetUser.color), Color(1, 0.5, 0.5))
     return false
 }
 
 export function powerupDraw(objectSetTarget: ObjectSet, powerup: GObject, objectSetUser: ObjectSet): boolean {
+    Logger.trace(LOG_LABEL, `powerupDraw(${objectSetTarget.color}, ${powerup.name}, ${objectSetUser.color})`)
     // TODO
-    broadcastToColor("Not implemented.", objectSetUser.color, Color(1, 0.5, 0.5))
+    broadcastToColor("Not implemented.", tableSelectionToColorLiteral(objectSetUser.color), Color(1, 0.5, 0.5))
     return false
 }
 
 export function rupeePull(objectSetTarget: ObjectSet, powerup: GObject, objectSetUser: ObjectSet): boolean {
+    Logger.trace(LOG_LABEL, `rupeePull(${objectSetTarget.color}, ${powerup.name}, ${objectSetUser.color})`)
     // TODO
-    broadcastToColor("Not implemented.", objectSetUser.color, Color(1, 0.5, 0.5))
+    broadcastToColor("Not implemented.", tableSelectionToColorLiteral(objectSetUser.color), Color(1, 0.5, 0.5))
     return false
 }
 
 export function rewardToken(objectSetTarget: ObjectSet, powerup: GObject, objectSetUser: ObjectSet): boolean {
+    Logger.trace(LOG_LABEL, `rewardToken(${objectSetTarget.color}, ${powerup.name}, ${objectSetUser.color})`)
     // TODO
-    broadcastToColor("Not implemented.", objectSetUser.color, Color(1, 0.5, 0.5))
+    broadcastToColor("Not implemented.", tableSelectionToColorLiteral(objectSetUser.color), Color(1, 0.5, 0.5))
     return false
 }
 
 export function royalToken(objectSetTarget: ObjectSet, powerup: GObject, objectSetUser: ObjectSet): boolean {
+    Logger.trace(LOG_LABEL, `royalToken(${objectSetTarget.color}, ${powerup.name}, ${objectSetUser.color})`)
     // TODO
-    broadcastToColor("Not implemented.", objectSetUser.color, Color(1, 0.5, 0.5))
+    broadcastToColor("Not implemented.", tableSelectionToColorLiteral(objectSetUser.color), Color(1, 0.5, 0.5))
     return false
 }
 
 export function prestigeToken(objectSetTarget: ObjectSet, powerup: GObject, objectSetUser: ObjectSet): boolean {
+    Logger.trace(LOG_LABEL, `prestigeToken(${objectSetTarget.color}, ${powerup.name}, ${objectSetUser.color})`)
     // TODO
-    broadcastToColor("Not implemented.", objectSetUser.color, Color(1, 0.5, 0.5))
+    broadcastToColor("Not implemented.", tableSelectionToColorLiteral(objectSetUser.color), Color(1, 0.5, 0.5))
     return false
 }
 
 export function resetTimer(objectSetTarget: ObjectSet, powerup: GObject, objectSetUser: ObjectSet): boolean {
+    Logger.trace(LOG_LABEL, `resetTimer(${objectSetTarget.color}, ${powerup.name}, ${objectSetUser.color})`)
     // TODO
-    broadcastToColor("Not implemented.", objectSetUser.color, Color(1, 0.5, 0.5))
+    broadcastToColor("Not implemented.", tableSelectionToColorLiteral(objectSetUser.color), Color(1, 0.5, 0.5))
     return false
 }
 
 export function cardMod(objectSetTarget: ObjectSet, powerup: GObject, objectSetUser: ObjectSet): boolean {
+    Logger.trace(LOG_LABEL, `cardMod(${objectSetTarget.color}, ${powerup.name}, ${objectSetUser.color})`)
     // TODO
-    broadcastToColor("Not implemented.", objectSetUser.color, Color(1, 0.5, 0.5))
+    broadcastToColor("Not implemented.", tableSelectionToColorLiteral(objectSetUser.color), Color(1, 0.5, 0.5))
     return false
 }
 
 export function checkPowerupDropZone(color: ColorLiteral, object: GObject, who: PowerupTarget, effect: PowerupEffect): void {
+    Logger.trace(LOG_LABEL, `checkPowerupDropZone(${color}, ${object}, ${who}, ${effect})`)
     /*for (let set of Object.values(Zones.zones)) {
         let objectsInZone = set.zone.getObjects()
         for (let zoneObject of objectsInZone) {
@@ -1592,6 +1714,7 @@ export function checkPowerupDropZone(color: ColorLiteral, object: GObject, who: 
 }
 
 export function checkPowerupEffect(color: ColorLiteral, object: GObject, who: PowerupTarget, effect: PowerupEffect, setTarget: ObjectSet): void {
+    Logger.trace(LOG_LABEL, `checkPowerupEffect(${color}, ${object}, ${who}, ${effect}, ${setTarget.color})`)
     /*let setUser = Zones.getObjectSetFromColor(color as TableSelection)
     if (setUser === undefined) {
         return
@@ -1619,6 +1742,7 @@ export function checkPowerupEffect(color: ColorLiteral, object: GObject, who: Po
 }
 
 export function addBonus(position?: Vector): void {
+    Logger.trace(LOG_LABEL, `addBonus(${position})`)
     if (position === undefined) {
         position = Zones.bonusZone?.getPosition()
         if (position === undefined)
@@ -1630,6 +1754,9 @@ export function addBonus(position?: Vector): void {
     params.position = position
 
     let autoBonuses = RoundBonus.getBonusBag().takeObject(params)
+    if  (autoBonuses === undefined) {
+        return;
+    }
     autoBonuses.shuffle()
 
     params.callback_function = activateBonus
@@ -1637,6 +1764,9 @@ export function addBonus(position?: Vector): void {
     let chosenBonus: GObject | undefined = undefined;
     do {
         chosenBonus = autoBonuses.takeObject(params)
+        if (chosenBonus === undefined) {
+            break;
+        }
         chosenBonus.setColorTint(Color(0.25, 0.25, 0.25))
 
         for (let i = 0; i < RoundBonus.bonusObjects.length; i++) {
@@ -1656,6 +1786,7 @@ export function addBonus(position?: Vector): void {
 }
 
 export function activateBonus(object: GObject): void {
+    Logger.trace(LOG_LABEL, `activateBonus(${object})`)
     let inTable = false
     for (let i = 0; i < RoundBonus.bonusObjects.length; i++) {
         if (RoundBonus.bonusObjects[i] === object) {
@@ -1675,11 +1806,12 @@ export function activateBonus(object: GObject): void {
 }
 
 export function clearBonus(): void {
+    Logger.trace(LOG_LABEL, `clearBonus()`)
     if (RoundBonus.bonusObjects.length === 0) {
         let objectList = Zones.getBonusZone().getObjects()
         for (let objectData of objectList) {
             let object = getObjectFromGUID(objectData.guid)
-            if (object.hasTag(Tag.Powerup) && object.getLock()) {
+            if (object !== undefined && object.hasTag(Tag.Powerup) && object.getLock()) {
                 object.destruct()
             }
         }
@@ -1710,6 +1842,7 @@ export function onRoundEnd(): any {
 }
 
 export function getPayoutMultiplier(set: ObjectSet, multiplier: number): any {
+    Logger.trace(LOG_LABEL, `getPayoutMultiplier(${set}, ${multiplier})`)
     return runBonusFunc('payoutMultiplier', { 
         set: set,
         betMultiplier: multiplier
@@ -1742,6 +1875,7 @@ export function shouldBust(set: ObjectSet): boolean {
 }
 
 export function runBonusFunc(funcName: string, data?: any, returnFunc?: (...args: any) => void): any {
+    Logger.trace(LOG_LABEL, `runBonusFunc(${funcName}, ${data})`)
     let ret = []
     for (let i = 0; i < RoundBonus.bonusObjects.length; i++) {
         let object = RoundBonus.bonusObjects[i]
@@ -1767,6 +1901,12 @@ export function runBonusFunc(funcName: string, data?: any, returnFunc?: (...args
 }
 
 export function btnFlipCard(card: GObject, color: ColorLiteral): void {
+    Logger.trace(LOG_LABEL, `btnFlipCard(${card}, ${color})`)
+    return localBtnFlipCard(card, color);
+}
+
+export function localBtnFlipCard(card: GObject, color: ColorLiteral): void {
+    Logger.trace(LOG_LABEL, `localBtnFlipCard(${card}, ${color})`)
     let canFlip = runBonusFunc('onCardFlip', {
         card: card,
         col: color
@@ -1794,6 +1934,7 @@ export function btnFlipCard(card: GObject, color: ColorLiteral): void {
 }
 
 export function cardPlacedCallback(object: GObject, data: any): void {
+    Logger.trace(LOG_LABEL, `cardPlacedCallback(${object}, ${data})`)
     if (object === undefined) {
         return
     }
@@ -1821,7 +1962,7 @@ export function cardPlacedCallback(object: GObject, data: any): void {
         if (data.set.color !== 'Dealer') {
             object.createButton({
                 label: "Flip",
-                click_function: btnFlipCard,
+                click_function: 'localBtnFlipCard',
                 function_owner: undefined,
                 position: Vector(-0.4, 1.1, -0.95),
                 rotation: Vector(0, 0, 0),
@@ -1831,7 +1972,7 @@ export function cardPlacedCallback(object: GObject, data: any): void {
             })
             object.createButton({
                 label: "Flip",
-                click_function: btnFlipCard,
+                click_function: 'localBtnFlipCard',
                 function_owner: undefined,
                 position: Vector(0.4, -1.1, -0.95),
                 rotation: Vector(0, 0, 180),
@@ -1841,7 +1982,7 @@ export function cardPlacedCallback(object: GObject, data: any): void {
             })
         }
     } else {
-        object.setTable('blackjack_playerSet', undefined)
+        object.setTable('blackjack_playerSet', {})
     }
     if (data.set !== undefined) {
         let set = data.set as ObjectSet
@@ -1857,6 +1998,7 @@ export function cardPlacedCallback(object: GObject, data: any): void {
 }
 
 export function placeCard(position: Vector, flip: boolean, set: ObjectSet, isStarter: boolean, fastDraw: boolean): void {
+    Logger.trace(LOG_LABEL, `placeCard(${position}, ${flip}, ${set.color}, ${isStarter}, ${fastDraw})`)
     if (DeckManager.mainDeck === undefined || DeckManager.mainDeck.getQuantity() < 40) {
         DeckManager.newDeck()
     }
@@ -1866,7 +2008,7 @@ export function placeCard(position: Vector, flip: boolean, set: ObjectSet, isSta
         targetPos = Vector(position.x ?? 0, position.y ?? 0, position.z ?? 0)
         position.y = (position.y ?? 0) + 0.1
     } else if (position[1] !== undefined) {
-        targetPos = Vector(position[0] ?? 0, position[1] ?? 0, position[2] ?? 0)
+        targetPos = Vector(position[1] ?? 0, position[2] ?? 0, position[3] ?? 0)
         position.y = (position[1] ?? 0) + 0.1
     }
 
@@ -1898,6 +2040,7 @@ export function placeCard(position: Vector, flip: boolean, set: ObjectSet, isSta
 }
 
 export function checkForBlackjack(value: number, facedownCard: GObject | undefined): void {
+    Logger.trace(LOG_LABEL, `checkForBlackjack(${value}, ${facedownCard})`)
     if (facedownCard === undefined) {
         return
     }

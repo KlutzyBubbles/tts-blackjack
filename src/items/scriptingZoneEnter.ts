@@ -3,6 +3,7 @@ import { EventManager } from "../events/manager";
 import Logger from "../logger";
 import DeckManager from "../objects/decks";
 import Rewards from "../objects/rewards";
+import { Zone } from "../types";
 import Zones from "../zones/zones";
 
 export function onObjectEnterScriptingZone(zone: Zone, object: GObject): void {

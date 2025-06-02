@@ -19,18 +19,22 @@ export default class DeckManager {
         let params: TakeObjectParameters = {}
         params.position = Vector(deckPos.x ?? 0, deckPos.y ?? 0, deckPos.z ?? 0)
         let decks = BagHolders.getDeckBag().takeObject(params)
-        decks.shuffle()
+        if (decks !== undefined) {
+            decks.shuffle()
 
-        params.rotation = Vector(0, 0, 180)
-        params.callback_function = DeckManager.shuffleNewDeck
-        
-        let taken = decks.takeObject(params)
-        taken.shuffle()
-        taken.setPosition(params.position)
-        taken.setRotation(params.rotation)
-        DeckManager.mainDeck = taken
+            params.rotation = Vector(0, 0, 180)
+            params.callback_function = DeckManager.shuffleNewDeck
+            
+            let taken = decks.takeObject(params)
+            if (taken !== undefined) {
+                taken.shuffle()
+                taken.setPosition(params.position)
+                taken.setRotation(params.rotation)
+            }
+            DeckManager.mainDeck = taken
 
-        decks.destruct()
+            decks.destruct()
+        }
     }
 
     public static checkForDeck(): void {

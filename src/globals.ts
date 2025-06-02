@@ -10,8 +10,8 @@ import ObjectSet from "./zones/objectSet"
 import Zones from "./zones/zones"
 
 function waitTime(time: number): void {
-    let endTime = os.time() + time
-    while (os.time() < endTime) {
+    let endTime = Time.time + time
+    while (Time.time < endTime) {
         coroutine.yield
     }
 }

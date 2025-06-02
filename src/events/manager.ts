@@ -1,4 +1,5 @@
 import Logger from "../logger"
+import { Zone } from "../types"
 
 export type Event = 'onBlindfold'
 | 'onChat'
@@ -16,7 +17,6 @@ export class EventManager {
 
     private static register(event: Event, func: (...args: any) => void) {
         Logger.trace('events.manager', `Registering ${event}`)
-        print(`Registering ${event}`)
         if (EventManager.events[event] === undefined) {
             EventManager.events[event] = []
         }
@@ -60,9 +60,8 @@ export class EventManager {
     }
 
     public static run(event: Event, ...args: any): void {
-        print(`Running ${event}`)
         for (let func of EventManager.events[event] ?? []) {
-            Logger.trace('events.manager', `run('${event}', [${args?.length}])`)
+            // Logger.trace('events.manager', `run('${event}', [${args?.length}])`)
             func(...args)
         }
     }
@@ -73,11 +72,11 @@ function onObjectPickUp(color: ColorLiteral, object: GObject) {
     EventManager.run('onObjectPickUp', color, object)
 }
 
-function onObjectEnterContainer(container: Container, object: GObject) {
+function onObjectEnterContainer(container: GObject, object: GObject) {
     EventManager.run('onObjectEnterContainer', container, object)
 }
 
-function onObjectLeaveContainer(container: Container, object: GObject) {
+function onObjectLeaveContainer(container: GObject, object: GObject) {
     EventManager.run('onObjectLeaveContainer', container, object)
 }
 
@@ -97,7 +96,6 @@ function onPlayerChangeColor(color: ColorLiteral) {
 let countDestroy = 0
 
 function onObjectDestroy(object: GObject) {
-    print(`Destoy ${countDestroy}`)
     countDestroy++;
     EventManager.run('onObjectDestroy', object)
 }

@@ -11,6 +11,10 @@ export type VisibilityColors = {
     [key in ColorLiteral]?: boolean
 }
 
+export type Zone = Omit<GObject, 'getObjects'> & {
+    getObjects: () => GObject[]
+}
+
 // Taken from https://api.tabletopsimulator.com/ui/attributes/
 export enum ButtonInputs {
     LeftMouse = '-1',

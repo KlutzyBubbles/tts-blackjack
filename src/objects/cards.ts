@@ -64,7 +64,7 @@ export default class CardHelpers {
             if (data.set.color !== 'Dealer') {
                 object.createButton({
                     label: "Flip",
-                    click_function: CardHelpers.btnFlipCard,
+                    click_function: 'localBtnFlipCard',
                     function_owner: undefined,
                     position: Vector(-0.4, 1.1, -0.95),
                     rotation: Vector(0, 0, 0),
@@ -74,7 +74,7 @@ export default class CardHelpers {
                 })
                 object.createButton({
                     label: "Flip",
-                    click_function: CardHelpers.btnFlipCard,
+                    click_function: 'localBtnFlipCard',
                     function_owner: undefined,
                     position: Vector(0.4, -1.1, -0.95),
                     rotation: Vector(0, 0, 180),
@@ -84,7 +84,7 @@ export default class CardHelpers {
                 })
             }
         } else {
-            object.setTable('blackjack_playerSet', undefined)
+            object.setTable('blackjack_playerSet', {})
         }
         if (data.set !== undefined) {
             let set = data.set as ObjectSet
@@ -109,7 +109,7 @@ export default class CardHelpers {
             targetPos = Vector(position.x ?? 0, position.y ?? 0, position.z ?? 0)
             position.y = (position.y ?? 0) + 0.1
         } else if (position[1] !== undefined) {
-            targetPos = Vector(position[0] ?? 0, position[1] ?? 0, position[2] ?? 0)
+            targetPos = Vector(position[1] ?? 0, position[2] ?? 0, position[3] ?? 0)
             position.y = (position[1] ?? 0) + 0.1
         }
 

@@ -2,7 +2,7 @@ import { ColorZones, OtherObjectGuids, OtherZones } from "../constants";
 import Settings from "../settings";
 import State from "../state";
 import Timers from "../timer";
-import { TableColorList, TableSelection } from "../types";
+import { TableColorList, TableSelection, Zone } from "../types";
 import { dealButtonPressed, payButtonPressed, updateHandDisplay, createPlayerMetaActions, hitCard } from "./functions";
 import ZoneHelpers from "./helpers";
 import ObjectSet from "./objectSet";

@@ -1,4 +1,4 @@
-import { PlayerSelection, ScriptCallableColor, SpecialHands } from "./types"
+import { PlayerSelection, ScriptCallableColor, SpecialHands, TableSelection } from "./types"
 
 export function colorToHex(color: Color, includeHash = false): string {
     return `${includeHash ? '#' : ''}${componentToHex(convertTo255(color.r))}${componentToHex(convertTo255(color.g))}${componentToHex(convertTo255(color.b))}`
@@ -60,11 +60,37 @@ export function getObjects(objectsGuids: string[]) {
 }
 
 export function hasPermission(color: ScriptCallableColor | ColorLiteral): boolean {
-    return color === 'Lua' || color === 'Black' || Player[color].promoted || Player[color].host || Player[color].admin
+    return color === 'Lua' || color === 'Black' || Player[color].promoted || Player[color].host || Player[color].admin || false
 }
 
 export function bulkSetInteractable(objects: GObject[], interactable: boolean): void {
     for (let object of objects) {
         object.interactable = interactable
+    }
+}
+
+/*
+export function getPlayerByColor(color: ColorLiteral): Player | undefined {
+    for (let player of Player.getPlayers()) { 
+        if (player.color === color) {
+            return player;
+        }
+    }
+    return undefined;
+}
+*/
+
+export function tableSelectionToColorLiteral(color: TableSelection): ColorLiteral {
+    switch (color) {
+        case 'Dealer':
+        case 'Split1':
+        case 'Split2':
+        case 'Split3':
+        case 'Split4':
+        case 'Split5':
+        case 'Split6':
+            return 'Black';
+        default:
+            return color;
     }
 }

@@ -57,9 +57,11 @@ export default class PowerupManager {
         PowerupManager.powerups = {}
         for (let guid of PowerupGuids) {
             let object = getObjectFromGUID(guid)
-            let powerupName = object.getName()
-            if (Object.keys(PowerupManager.definitions).includes(powerupName)) {
-                PowerupManager.powerups[powerupName] = guid
+            if (object !== undefined) {
+                let powerupName = object.getName()
+                if (Object.keys(PowerupManager.definitions).includes(powerupName)) {
+                    PowerupManager.powerups[powerupName] = guid
+                }
             }
         }
     }

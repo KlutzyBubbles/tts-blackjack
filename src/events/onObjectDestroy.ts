@@ -6,10 +6,7 @@ export class RoundTimerDestroyed {
 
     public static countDestroy = 0
     public static roundTimerDestroyed(object: GObject): void {
-        print(`Destyyyoy ${RoundTimerDestroyed.countDestroy}`)
         RoundTimerDestroyed.countDestroy++;
-        let timer = Timers.roundTimer
-        print(`printeting ${timer === undefined}`)
         if (object === Timers.roundTimer) {
             Timers.roundTimer = undefined
         } else if (object === State.roundStateObject) {

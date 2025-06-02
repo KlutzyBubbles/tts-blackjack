@@ -21,7 +21,7 @@ export function pickupItemPermission(color: ColorLiteral, object: GObject) {
     if (description === '') {
         Logger.trace('items.pickup', `Description is empty`)
         object.setDescription(generatePermissionString(player))
-    } else if (description.startsWith(player.steam_id)) {
+    } else if (description.startsWith(player.steam_id || 'UNKNOWN_STEAM_ID')) {
         Logger.trace('items.pickup', `Description starts with '${player.steam_id}'`)
         if (description.includes('\n')) {
             Logger.trace('items.pickup', `Description includes newline`)
@@ -43,7 +43,7 @@ export function pickupItemPermission(color: ColorLiteral, object: GObject) {
     }
 }
 
-export function preventEnterList(container: Container, object: GObject) {
+export function preventEnterList(container: GObject, object: GObject) {
     Logger.trace('items.pickup', `preventEnterList(${container}, ${object})`)
     let preventItem = preventEnterContainer[object.getGUID()]
     if (preventItem !== undefined && preventItem === object) {

@@ -8,7 +8,7 @@ import { checkPowerupDropZone } from "../zones/functions";
 import Zones from "../zones/zones";
 //import { generatePermissionString } from "./pickup";
 
-let objectHasLeftContainer: { [key: string]: Container | undefined } = {}
+let objectHasLeftContainer: { [key: string]: GObject | undefined } = {}
 let objectForceDropped: { [key: string]: boolean } = {}
 
 export function onObjectDropped(color: ColorLiteral, object: GObject): void {
@@ -77,7 +77,7 @@ export function onObjectDropped(color: ColorLiteral, object: GObject): void {
     */
 }
 
-export function onObjectLeaveContainer(bag: Container, object: GObject): void {
+export function onObjectLeaveContainer(bag: GObject, object: GObject): void {
     if ((object.getPosition().z ?? 0) < -16) {
         objectHasLeftContainer[object.guid] = bag
         Wait.frames(() => {

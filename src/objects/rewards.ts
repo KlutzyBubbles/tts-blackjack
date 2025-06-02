@@ -1,5 +1,5 @@
 import { RewardGuids } from "../constants";
-import { RewardName } from "../types";
+import { RewardName, Zone } from "../types";
 
 export default class Rewards {
 
