@@ -1,4 +1,4 @@
-import { HandType, RewardName, RoundState, SpecialHands, TableSelection } from "./types"
+import { Chip, HandType, RewardName, RoundState, SpecialHands, TableSelection } from "./types"
 
 export enum Tag {
     Chip = 'Chip',
@@ -130,17 +130,19 @@ export const OtherZones: { [key: string]: string } = {
 }
 
 export const ObjectLockdown = [
+    'ad770c', // Tabletop board
+
     '16f87e', '8e0429', // Dealer Area
-    '9871fe', '8eafbb', // Pink
-    'd5d7c5', '32da09', // Purple
+    '9871fe', '8eafbb', '8287c5', // Pink
+    'd5d7c5', '32da09', 'bfc076', // Purple
     'b92ec5', '51086b', '981767', // Blue
     '51aacb', '60b260', '5a0955', // Teal
     'b01343', '704082', '653add', // Green
     '2cc362', '51690f', '63c8aa', // Yellow
     'fddcfc', '8ea777', '54895c', // Orange
     'f12fe3', '9f466e', 'a3c6db', // Red
-    'ac9b82', 'b2883b', // Brown
-    'a82b72', '4211a7', // White
+    'ac9b82', 'b2883b', '5bc8e6', // Brown
+    'a82b72', '4211a7', 'f2bd2b', // White
     '9ac0b7', // unknown
     
     // Rupee tophies
@@ -305,4 +307,541 @@ export const ColorZones: { [key in TableSelection]: {
         actionButtons: '1f100d',
         table: '43d808',
     },
+}
+
+export const imageMissing = 'https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/MISSING.jpg'
+export const imageNoValue = 'https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/NO_VALUE.jpg'
+
+export const chipList: Chip[] = [
+    {
+        name: "$1",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1.jpg"
+    },
+    {
+        name: "$10",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10.jpg"
+    },
+    {
+        name: "$100",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100.jpg"
+    },
+    {
+        name: "$1,000",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1000.jpg"
+    },
+    {
+        name: "$10,000",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10000.jpg"
+    },
+    {
+        name: "$100,000",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100000.jpg"
+    },
+    {
+        name: "$1 Million",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Million.jpg"
+    },
+    {
+        name: "$10 Million",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Million.jpg"
+    },
+    {
+        name: "$100 Million",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Million.jpg"
+    },
+    {
+        name: "$1 Billion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Billion.jpg"
+    },
+    {
+        name: "$10 Billion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Billion.jpg"
+    },
+    {
+        name: "$100 Billion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Billion.jpg"
+    },
+    {
+        name: "$1 Trillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Trillion.jpg"
+    },
+    {
+        name: "$10 Trillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Trillion.jpg"
+    },
+    {
+        name: "$100 Trillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Trillion.jpg"
+    },
+    {
+        name: "$1 Quadrillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Quadrillion.jpg"
+    },
+    {
+        name: "$10 Quadrillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Quadrillion.jpg"
+    },
+    {
+        name: "$100 Quadrillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Quadrillion.jpg"
+    },
+    {
+        name: "$1 Quintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Quintillion.jpg"
+    },
+    {
+        name: "$10 Quintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Quintillion.jpg"
+    },
+    {
+        name: "$100 Quintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Quintillion.jpg"
+    },
+    {
+        name: "$1 Sextillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Sextillion.jpg"
+    },
+    {
+        name: "$10 Sextillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Sextillion.jpg"
+    },
+    {
+        name: "$100 Sextillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Sextillion.jpg"
+    },
+    {
+        name: "$1 Septillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Septillion.jpg"
+    },
+    {
+        name: "$10 Septillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Septillion.jpg"
+    },
+    {
+        name: "$100 Septillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Septillion.jpg"
+    },
+    {
+        name: "$1 Octillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Octillion.jpg"
+    },
+    {
+        name: "$10 Octillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Octillion.jpg"
+    },
+    {
+        name: "$100 Octillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Octillion.jpg"
+    },
+    {
+        name: "$1 Nonillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Nonillion.jpg"
+    },
+    {
+        name: "$10 Nonillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Nonillion.jpg"
+    },
+    {
+        name: "$100 Nonillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Nonillion.jpg"
+    },
+    {
+        name: "$1 Decillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Decillion.jpg"
+    },
+    {
+        name: "$10 Decillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Decillion.jpg"
+    },
+    {
+        name: "$100 Decillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Decillion.jpg"
+    },
+    {
+        name: "$1 Undecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Undecillion.jpg"
+    },
+    {
+        name: "$10 Undecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Undecillion.jpg"
+    },
+    {
+        name: "$100 Undecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Undecillion.jpg"
+    },
+    {
+        name: "$1 Duodecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Duodecillion.jpg"
+    },
+    {
+        name: "$10 Duodecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Duodecillion.jpg"
+    },
+    {
+        name: "$100 Duodecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Duodecillion.jpg"
+    },
+    {
+        name: "$1 Tredecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Tredecillion.jpg"
+    },
+    {
+        name: "$10 Tredecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Tredecillion.jpg"
+    },
+    {
+        name: "$100 Tredecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Tredecillion.jpg"
+    },
+    {
+        name: "$1 Quattuordecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Quattuordecillion.jpg"
+    },
+    {
+        name: "$10 Quattuordecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Quattuordecillion.jpg"
+    },
+    {
+        name: "$100 Quattuordecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Quattuordecillion.jpg"
+    },
+    {
+        name: "$1 Quindecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Quindecillion.jpg"
+    },
+    {
+        name: "$10 Quindecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Quindecillion.jpg"
+    },
+    {
+        name: "$100 Quindecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Quindecillion.jpg"
+    },
+    {
+        name: "$1 Sexdecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Sexdecillion.jpg"
+    },
+    {
+        name: "$10 Sexdecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Sexdecillion.jpg"
+    },
+    {
+        name: "$100 Sexdecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Sexdecillion.jpg"
+    },
+    {
+        name: "$1 Septendecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Septendecillion.jpg"
+    },
+    {
+        name: "$10 Septendecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Septendecillion.jpg"
+    },
+    {
+        name: "$100 Septendecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Septendecillion.jpg"
+    },
+    {
+        name: "$1 Octodecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Octodecillion.jpg"
+    },
+    {
+        name: "$10 Octodecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Octodecillion.jpg"
+    },
+    {
+        name: "$100 Octodecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Octodecillion.jpg"
+    },
+    {
+        name: "$1 Novemdecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Novemdecillion.jpg"
+    },
+    {
+        name: "$10 Novemdecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Novemdecillion.jpg"
+    },
+    {
+        name: "$100 Novemdecillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Novemdecillion.jpg"
+    },
+    {
+        name: "$1 Vigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Vigintillion.jpg"
+    },
+    {
+        name: "$10 Vigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Vigintillion.jpg"
+    },
+    {
+        name: "$100 Vigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Vigintillion.jpg"
+    },
+    {
+        name: "$1 Unvigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Unvigintillion.jpg"
+    },
+    {
+        name: "$10 Unvigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Unvigintillion.jpg"
+    },
+    {
+        name: "$100 Unvigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Unvigintillion.jpg"
+    },
+    {
+        name: "$1 Duovigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Duovigintillion.jpg"
+    },
+    {
+        name: "$10 Duovigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Duovigintillion.jpg"
+    },
+    {
+        name: "$100 Duovigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Duovigintillion.jpg"
+    },
+    {
+        name: "$1 Trevigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Trevigintillion.jpg"
+    },
+    {
+        name: "$10 Trevigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Trevigintillion.jpg"
+    },
+    {
+        name: "$100 Trevigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Trevigintillion.jpg"
+    },
+    {
+        name: "$1 Quattuorvigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Quattuorvigintillion.jpg"
+    },
+    {
+        name: "$10 Quattuorvigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Quattuorvigintillion.jpg"
+    },
+    {
+        name: "$100 Quattuorvigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Quattuorvigintillion.jpg"
+    },
+    {
+        name: "$1 Quinvigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Quinvigintillion.jpg"
+    },
+    {
+        name: "$10 Quinvigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Quinvigintillion.jpg"
+    },
+    {
+        name: "$100 Quinvigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Quinvigintillion.jpg"
+    },
+    {
+        name: "$1 Sexvigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Sexvigintillion.jpg"
+    },
+    {
+        name: "$10 Sexvigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Sexvigintillion.jpg"
+    },
+    {
+        name: "$100 Sexvigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Sexvigintillion.jpg"
+    },
+    {
+        name: "$1 Septenvigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Septenvigintillion.jpg"
+    },
+    {
+        name: "$10 Septenvigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Septenvigintillion.jpg"
+    },
+    {
+        name: "$100 Septenvigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Septenvigintillion.jpg"
+    },
+    {
+        name: "$1 Octovigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Octovigintillion.jpg"
+    },
+    {
+        name: "$10 Octovigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Octovigintillion.jpg"
+    },
+    {
+        name: "$100 Octovigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Octovigintillion.jpg"
+    },
+    {
+        name: "$1 Novemvigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Novemvigintillion.jpg"
+    },
+    {
+        name: "$10 Novemvigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Novemvigintillion.jpg"
+    },
+    {
+        name: "$100 Novemvigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Novemvigintillion.jpg"
+    },
+    {
+        name: "$1 Trigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Trigintillion.jpg"
+    },
+    {
+        name: "$10 Trigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Trigintillion.jpg"
+    },
+    {
+        name: "$100 Trigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Trigintillion.jpg"
+    },
+    {
+        name: "$1 Untrigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Untrigintillion.jpg"
+    },
+    {
+        name: "$10 Untrigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Untrigintillion.jpg"
+    },
+    {
+        name: "$100 Untrigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Untrigintillion.jpg"
+    },
+    {
+        name: "$1 Duotrigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Duotrigintillion.jpg"
+    },
+    {
+        name: "$10 Duotrigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Duotrigintillion.jpg"
+    },
+    {
+        name: "$100 Duotrigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Duotrigintillion.jpg"
+    },
+    {
+        name: "$1 Tretrigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/1_Tretrigintillion.jpg"
+    },
+    {
+        name: "$10 Tretrigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/10_Tretrigintillion.jpg"
+    },
+    {
+        name: "$100 Tretrigintillion",
+        tierUp: 10,
+        image: "https://raw.githubusercontent.com/KlutzyBubbles/tts-blackjack/main/assets/editedNames/chips/100_Tretrigintillion.jpg"
+    }
+];
+
+export const chipNameList: Record<string, number> = {};
+
+for (let i = 0; i < chipList.length; i++) {
+    chipNameList[chipList[i].name] = i;
 }
