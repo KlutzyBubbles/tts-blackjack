@@ -1,5 +1,6 @@
 import Logger, { LogLevel } from "./logger";
 import "./events";
+import "./chips"; // Tabletop Board Chip Spawner
 import "./ui";
 import "./items";
 import CommandHandler from "./commands/handler";
