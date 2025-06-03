@@ -7,6 +7,12 @@ export type ColorTableSelection = Exclude<ColorLiteral | 'Dealer', 'Nobody' | 'B
 export type SplitTableSelection = 'Split1' | 'Split2' | 'Split3' | 'Split4' | 'Split5' | 'Split6'
 export type TableSelection = ColorTableSelection | SplitTableSelection
 
+export type Chip = {
+    name: string,
+    tierUp: number, 
+    image: string
+}
+
 export type VisibilityColors = {
     [key in ColorLiteral]?: boolean
 }
