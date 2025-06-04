@@ -1,7 +1,7 @@
 import RoundBonus from "../bonus/round"
 import { SpecialHandDisplay, SoftHandDisplay, DisplayColors, CardNames, Tag, SelfDestructScript, OtherObjectGuids } from "../constants"
 import { hasPermission, isSpecialValue, tableSelectionToColorLiteral } from "../functions"
-import { generatePermissionString } from "../items/pickup"
+import { generatePermissionString } from "../items/functions"
 import Logger from "../logger"
 // import CardHelpers from "../objects/cards"
 import DeckManager from "../objects/decks"
@@ -1090,7 +1090,7 @@ export function payButtonPressed(object: GObject | undefined, color: ScriptCalla
     return localPayButtonPressed(object, color);
 }
 
-export function localPayButtonPressed(object: GObject | undefined, color: ScriptCallableColor) {
+function localPayButtonPressed(object: GObject | undefined, color: ScriptCallableColor) {
     Logger.trace(LOG_LABEL, `localPayButtonPressed(${object}, ${color})`)
     if (hasPermission(color)) {
         setRoundState(RoundState.Betting, Settings.betTime)
@@ -1191,7 +1191,7 @@ export function dealButtonPressed(object: GObject | undefined, color: ScriptCall
     return localDealButtonPressed(object, color);
 }
 
-export function localDealButtonPressed(object: GObject | undefined, color: ScriptCallableColor): void {
+function localDealButtonPressed(object: GObject | undefined, color: ScriptCallableColor): void {
     Logger.trace(LOG_LABEL, `localDealButtonPressed(${object}, ${color})`)
     if (hasPermission(color)) {
         setRoundState(RoundState.Playing)
@@ -1905,7 +1905,7 @@ export function btnFlipCard(card: GObject, color: ColorLiteral): void {
     return localBtnFlipCard(card, color);
 }
 
-export function localBtnFlipCard(card: GObject, color: ColorLiteral): void {
+function localBtnFlipCard(card: GObject, color: ColorLiteral): void {
     Logger.trace(LOG_LABEL, `localBtnFlipCard(${card}, ${color})`)
     let canFlip = runBonusFunc('onCardFlip', {
         card: card,

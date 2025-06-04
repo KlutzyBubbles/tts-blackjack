@@ -1,4 +1,4 @@
-const OnlyPlayable: ColorLiteral[] = ['White', 'Brown', 'Red', 'Orange', 'Green', 'Teal', 'Blue', 'Purple', 'Pink']
+const OnlyPlayable: ColorLiteral[] = ['White', 'Brown', 'Red', 'Yellow', 'Orange', 'Green', 'Teal', 'Blue', 'Purple', 'Pink']
 export const ColorList: ColorLiteral[] = OnlyPlayable.concat(['Grey', 'Black', 'Nobody']);
 export const TableColorList: TableSelection[] = (OnlyPlayable as TableSelection[]).concat(['Dealer', 'Split1', 'Split2', 'Split3', 'Split4', 'Split5', 'Split6']);
 

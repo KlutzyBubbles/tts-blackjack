@@ -129,6 +129,8 @@ export const OtherZones: { [key: string]: string } = {
     bonus: '3c31e1'
 }
 
+export const ChipSeperatorGUID = '9ac0b7'
+
 export const ObjectLockdown = [
     'ad770c', // Tabletop board
 
@@ -143,7 +145,7 @@ export const ObjectLockdown = [
     'f12fe3', '9f466e', 'a3c6db', // Red
     'ac9b82', 'b2883b', '5bc8e6', // Brown
     'a82b72', '4211a7', 'f2bd2b', // White
-    '9ac0b7', // unknown
+    ChipSeperatorGUID, // Stack seperator
     
     // Rupee tophies
     '1feed0', // Green

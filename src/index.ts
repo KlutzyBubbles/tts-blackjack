@@ -5,7 +5,7 @@ import "./ui";
 import "./items";
 import CommandHandler from "./commands/handler";
 import SettingsCommand from "./commands/settings";
-import { bulkSetInteractable, getObjects } from "./functions";
+import { bulkSetInteractable, bulkSetLock, getObjects } from "./functions";
 import { ObjectLockdown } from "./constants";
 import Zones from "./zones/zones";
 import DeckManager from "./objects/decks";
@@ -20,6 +20,7 @@ import State from "./state";
 import { PowerupEffect, PowerupTarget } from "./types";
 import ObjectSet from "./zones/objectSet";
 import { clearBonus, createZoneButtons, effects, findCardsToCount } from "./zones/functions";
+import ChipConverter from "./chips";
 
 function onLoad(saveData?: any) {
     Logger.level = LogLevel.Trace
@@ -38,9 +39,14 @@ function onLoad(saveData?: any) {
     BagHolders.initBags()
     Rewards.initRewards()
     PowerupManager.initPowerups()
+    ChipConverter.initChipConverters();
 
     bulkSetInteractable(getObjects(ObjectLockdown), false)
     bulkSetInteractable(Zones.getActionButtons(), false)
+
+    bulkSetLock(getObjects(ObjectLockdown), true)
+    bulkSetLock(Zones.getActionButtons(), true)
+    bulkSetLock(Zones.getChipContainers(), true)
 
     createZoneButtons()
     DeckManager.checkForDeck()

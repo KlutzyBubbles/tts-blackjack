@@ -69,6 +69,12 @@ export function bulkSetInteractable(objects: GObject[], interactable: boolean): 
     }
 }
 
+export function bulkSetLock(objects: GObject[], locked: boolean): void {
+    for (let object of objects) {
+        object.setLock(locked);
+    }
+}
+
 /*
 export function getPlayerByColor(color: ColorLiteral): Player | undefined {
     for (let player of Player.getPlayers()) { 

@@ -32,6 +32,32 @@ export default class Zones {
         }
         return output
     }
+
+    public static getChipContainers(onlyPlayers: boolean = false): GObject[] {
+        let output: GObject[] = []
+        if (onlyPlayers) {
+            for (let zoneColor of Object.keys(Zones.zones)) {
+                if (zoneColor.startsWith('Split') || zoneColor === 'Dealer')
+                    continue;
+                let zone = Zones.zones[zoneColor as keyof typeof Zones.zones];
+                if (zone !== undefined)
+                    output.push(zone.container)
+            }
+        } else {
+            for (let zone of Object.values(Zones.zones)) {
+                output.push(zone.container)
+            }
+        }
+        return output
+    }
+
+    public static getChipContainerByColor(color: ColorLiteral): GObject | undefined {
+        if (color === 'Nobody' || color === 'Black' || color === 'Grey') {
+            return undefined
+        }
+        return Zones.zones[color as keyof typeof Zones.zones]?.container
+    }
+
     public static initSingleZone(color: TableSelection, force = false): ObjectSet {
         if (Zones.zones[color] !== undefined && !force)
             return Zones.zones[color] as ObjectSet

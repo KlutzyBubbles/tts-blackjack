@@ -1,19 +1,19 @@
 import { Tag } from "../constants";
 import { EventManager } from "../events/manager";
 import Logger from "../logger";
-
-export function generatePermissionString(player: Player): string {
-    let result = `${player.steam_id} - ${player.steam_name}`
-    Logger.trace('items.pickup', `generatePermissionString(${player}) => '${result}'`)
-    return result
-}
+import { generatePermissionString } from "./functions";
 
 let preventEnterContainer: { [key: string]: GObject | undefined } = {}
 
 export function pickupItemPermission(color: ColorLiteral, object: GObject) {
     Logger.trace('items.pickup', `pickupItemPermission(${color}, ${object})`)
-    if (color === 'Black' || !object.hasTag(Tag.Permissionable)) {
+    if (color === 'Black' /* TODO: Work out tags || !object.hasTag('Chip') */) {
         Logger.trace('items.pickup', `Color is black or doesn't have tag`)
+        return
+    }
+    if (object.getPosition().z ?? 0 < -16) {
+        // Object is north of table in the admin zone
+        Logger.trace('items.pickup', `Object is north of table in the admin zone`)
         return
     }
     let description = object.getDescription()
